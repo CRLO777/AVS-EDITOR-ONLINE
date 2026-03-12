@@ -1,0 +1,2366 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>AVS Editor — GTA SA</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#070909;--surface:#0d1117;--surface2:#111820;
+  --border:#1c2535;--border2:#243040;
+  --red:#ff2233;--blue:#2288ff;--green:#00ee77;
+  --cyan:#00ccff;--amber:#ffaa00;
+  --text:#aabbc8;--text2:#556678;--text3:#334455;--white:#ddeeff;
+  --mono:'JetBrains Mono',monospace;--display:'Orbitron',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);display:flex;flex-direction:column}
+body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.05) 3px,rgba(0,0,0,.05) 4px);pointer-events:none;z-index:9999}
+header{flex-shrink:0;height:52px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 10px;gap:5px;box-shadow:0 1px 24px rgba(0,0,0,.6)}
+.logo{font-family:var(--display);font-weight:900;font-size:16px;letter-spacing:4px;color:var(--white);white-space:nowrap}
+.logo em{color:var(--red);font-style:normal}
+.logo-tag{font-size:9px;letter-spacing:2px;color:var(--text2);border:1px solid var(--border2);padding:2px 7px;border-radius:2px}
+.vsep{width:1px;height:26px;background:var(--border);flex-shrink:0}
+.h-sep{flex:1}
+.h-btn{font-family:var(--mono);font-size:10px;letter-spacing:.5px;padding:5px 8px;border-radius:2px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;transition:all .12s;text-transform:uppercase;white-space:nowrap}
+.h-btn:hover{color:var(--white);border-color:var(--text2);background:rgba(255,255,255,.04)}
+.h-btn.accent{background:var(--red);border-color:var(--red);color:#fff;font-weight:600}
+.h-btn.accent:hover{background:#ff4455}
+.h-btn.blue{background:rgba(34,136,255,.15);border-color:var(--blue);color:var(--blue)}
+.h-btn.blue:hover{background:rgba(34,136,255,.25)}
+.h-btn.amber{background:rgba(255,170,0,.1);border-color:var(--amber);color:var(--amber)}
+.h-btn.amber:hover{background:rgba(255,170,0,.2)}
+.lang-sel{font-family:var(--mono);font-size:10px;background:var(--surface2);border:1px solid var(--border2);color:var(--text2);padding:5px 7px;border-radius:2px;outline:none;cursor:pointer}
+.lang-sel:focus{border-color:var(--amber)}
+.state-tabs{display:flex;gap:3px;overflow-x:auto;max-width:400px;flex-shrink:0}
+.state-tabs::-webkit-scrollbar{height:3px}
+.state-tabs::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.stab{font-family:var(--mono);font-size:10px;padding:5px 10px;white-space:nowrap;border-radius:2px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;flex-shrink:0;display:flex;align-items:center;gap:4px;transition:all .1s}
+.stab:hover{color:var(--text);border-color:var(--border2)}
+.stab.active{background:rgba(255,34,51,.12);border-color:var(--red);color:var(--white)}
+.stab-name{background:none;border:none;color:inherit;font-family:inherit;font-size:inherit;cursor:pointer;outline:none}
+.stab-name:focus{background:var(--surface2);border-radius:2px;padding:0 3px}
+.stab-del{opacity:.3;cursor:pointer;font-size:11px;line-height:1;transition:opacity .1s}
+.stab-del:hover{opacity:1;color:var(--red)}
+.app{flex:1;display:grid;grid-template-columns:210px 1fr 280px;overflow:hidden}
+.left-panel{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.pnl-hdr{padding:9px 12px;font-size:9px;letter-spacing:3px;color:var(--text2);text-transform:uppercase;border-bottom:1px solid var(--border);display:flex;align-items:center;flex-shrink:0}
+.pnl-hdr .cnt{margin-left:auto;color:var(--text3);font-size:10px}
+.mat-list{flex:1;overflow-y:auto;padding:5px}
+.mat-item{display:flex;align-items:center;gap:7px;padding:6px 9px;border-radius:3px;border:1px solid transparent;cursor:pointer;margin-bottom:2px;transition:all .1s}
+.mat-item:hover{background:rgba(255,255,255,.03);border-color:var(--border)}
+.mat-item.sel{background:rgba(255,34,51,.08);border-color:rgba(255,34,51,.3)}
+.mat-sw{width:11px;height:11px;border-radius:50%;flex-shrink:0;border:1px solid rgba(255,255,255,.12)}
+.mat-id-inp{font-family:var(--mono);font-size:10px;color:var(--cyan);background:transparent;border:none;width:28px;padding:0;text-align:center;outline:none;cursor:pointer}
+.mat-id-inp:focus{background:var(--surface2);border:1px solid var(--border2);border-radius:2px}
+.mat-label{font-size:11px;color:var(--text);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mat-pill{width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 5px var(--green);flex-shrink:0}
+.mat-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;opacity:0;padding:0 2px;transition:opacity .1s}
+.mat-item:hover .mat-del{opacity:1}
+.mat-del:hover{color:var(--red)}
+.mat-eye{background:none;border:none;cursor:pointer;font-size:12px;padding:0 2px;opacity:0;color:var(--text2);transition:all .1s;line-height:1;flex-shrink:0}
+.mat-item:hover .mat-eye{opacity:1}
+.mat-eye.hidden-eye{opacity:.8;color:var(--amber)}
+.mat-item.mat-hidden{opacity:.45}
+.mat-item.mat-hidden .mat-label{text-decoration:line-through;color:var(--text3)}
+.mat-item.mat-hidden .mat-eye{opacity:1;color:var(--amber)}
+.hidden-badge{font-size:8px;background:rgba(255,170,0,.15);border:1px solid rgba(255,170,0,.35);color:var(--amber);padding:1px 5px;border-radius:2px;letter-spacing:1px;flex-shrink:0}
+.show-all-btn{font-size:9px;background:none;border:none;color:var(--amber);cursor:pointer;padding:2px 5px;border-radius:2px;white-space:nowrap;transition:all .1s;letter-spacing:.5px}
+.show-all-btn:hover{background:rgba(255,170,0,.12);color:var(--white)}
+.lft-foot{padding:7px;border-top:1px solid var(--border);display:flex;gap:5px;flex-shrink:0}
+.center{display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+.prev-topbar{flex-shrink:0;display:flex;align-items:center;padding:6px 12px;gap:10px;border-bottom:1px solid var(--border);background:var(--surface)}
+.prev-lbl{font-size:9px;letter-spacing:3px;color:var(--text2);text-transform:uppercase}
+.prev-ctrl{margin-left:auto;display:flex;align-items:center;gap:12px}
+.ctrl-lbl{font-size:10px;color:var(--text2)}
+input[type=range]{-webkit-appearance:none;width:70px;height:2px;background:var(--border2);border-radius:1px;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:10px;border-radius:50%;background:var(--red);cursor:pointer}
+.center-body{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column}
+.grid{padding:10px 12px;display:flex;flex-wrap:wrap;gap:3px;max-height:160px;overflow-y:auto;flex-shrink:0;border-bottom:1px solid var(--border)}
+.pcell{border-radius:3px;border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:#0a0d10;cursor:pointer;flex-shrink:0;position:relative;overflow:hidden}
+.pcell.lit{border-color:transparent}
+.pcell.sel-c{outline:2px solid rgba(255,255,255,.4);outline-offset:-2px}
+.cnum{font-family:var(--display);font-size:11px;font-weight:700;line-height:1;position:relative;z-index:1}
+.cms{font-size:8px;color:rgba(255,255,255,.25);line-height:1;position:relative;z-index:1}
+.rot-needle{position:absolute;bottom:50%;left:50%;height:45%;width:2px;background:var(--cyan);transform-origin:bottom center;border-radius:1px 1px 0 0;opacity:.85}
+.tl-wrap{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column}
+.tl-hdr{display:flex;align-items:center;padding:7px 12px;border-bottom:1px solid var(--border);gap:10px;flex-shrink:0}
+.tl-lbl{font-size:9px;letter-spacing:3px;color:var(--text2);text-transform:uppercase}
+.tl-ms-inp{font-family:var(--mono);font-size:10px;background:var(--surface2);border:1px solid var(--border2);color:var(--cyan);padding:4px 7px;border-radius:2px;width:70px;outline:none}
+.tl-note{font-size:9px;color:var(--text3);margin-left:auto}
+.tl-body{flex:1;overflow-y:auto;padding:7px 12px}
+.tl-row{display:flex;align-items:center;gap:5px;margin-bottom:4px;min-height:28px}
+.tl-row-id{font-size:9px;color:var(--text3);width:22px;flex-shrink:0;text-align:right}
+.tl-row.tl-sel .tl-row-id{color:var(--red)}
+.tl-sw{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.tl-cells{display:flex;gap:2px;flex:1;align-items:center;overflow:hidden}
+.tl-cell{height:20px;border-radius:2px;border:1px solid var(--border);cursor:pointer;flex-shrink:0;min-width:5px;transition:all .07s}
+.tl-cell:hover{border-color:rgba(255,255,255,.3)}
+.tl-cell.on{border-color:transparent}
+.tl-cell.tl-sel{outline:1px solid rgba(255,255,255,.6);outline-offset:1px}
+.tl-add{font-size:13px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;background:var(--surface2);border:1px dashed var(--border2);border-radius:2px;color:var(--text3);cursor:pointer;flex-shrink:0;transition:all .1s}
+.tl-add:hover{color:var(--green);border-color:var(--green)}
+.tl-tot{font-size:9px;color:var(--text3);white-space:nowrap;flex-shrink:0}
+.tl-rot-bar{height:20px;border-radius:2px;border:1px solid rgba(0,204,255,.3);background:rgba(0,204,255,.08);display:flex;align-items:center;padding:0 7px;font-size:9px;color:var(--cyan);flex:1;letter-spacing:1px}
+.right-panel{background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.props-body{flex:1;overflow-y:auto;padding:13px}
+.no-sel{display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:11px}
+.pg{margin-bottom:14px}
+.pl{display:block;font-size:9px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;margin-bottom:5px}
+.pi{width:100%;background:var(--bg);border:1px solid var(--border2);color:var(--white);font-family:var(--mono);font-size:11px;padding:6px 9px;border-radius:2px;outline:none;transition:border-color .1s}
+.pi:focus{border-color:var(--cyan)}
+.ps{width:100%;background:var(--bg);border:1px solid var(--border2);color:var(--white);font-family:var(--mono);font-size:11px;padding:6px 9px;border-radius:2px;outline:none;cursor:pointer}
+.ps:focus{border-color:var(--cyan)}
+.color-row{display:flex;gap:7px;align-items:center}
+.color-sw{width:32px;height:32px;border-radius:3px;border:1px solid var(--border2);flex-shrink:0}
+.divider{height:1px;background:var(--border);margin:12px 0}
+.stog{display:flex;border:1px solid var(--border2);border-radius:3px;overflow:hidden}
+.sopt{flex:1;padding:6px;font-family:var(--mono);font-size:10px;text-align:center;cursor:pointer;color:var(--text2);background:transparent;border:none;transition:all .12s}
+.sopt.on-a{background:rgba(0,238,119,.15);color:var(--green)}
+.sopt.off-a{background:rgba(255,34,51,.1);color:var(--red)}
+.row2{display:flex;gap:6px}
+.row2>*{flex:1}
+.row2 .pl{margin-bottom:3px}
+.sh-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:6px}
+.sh-f label{display:block;font-size:9px;color:var(--text3);margin-bottom:3px}
+.sh-f input{width:100%;background:var(--bg);border:1px solid var(--border2);color:var(--white);font-family:var(--mono);font-size:11px;padding:5px 7px;border-radius:2px;outline:none}
+.sh-f input:focus{border-color:var(--cyan)}
+.sh-f input[type=text]{color:var(--cyan)}
+.rot-dir{display:flex;border:1px solid var(--border2);border-radius:3px;overflow:hidden;margin-top:6px;margin-bottom:6px}
+.rot-dir-opt{flex:1;padding:5px 3px;font-family:var(--mono);font-size:9px;text-align:center;cursor:pointer;color:var(--text2);background:transparent;border:none;transition:all .12s;text-transform:uppercase;letter-spacing:.5px}
+.rot-dir-opt.active{background:rgba(0,204,255,.12);color:var(--cyan)}
+.rot-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.rot-f label{display:block;font-size:9px;color:var(--text3);margin-bottom:3px}
+.rot-f input,.rot-f select{width:100%;background:var(--bg);border:1px solid var(--border2);color:var(--white);font-family:var(--mono);font-size:11px;padding:5px 7px;border-radius:2px;outline:none}
+.rot-f input:focus,.rot-f select:focus{border-color:var(--cyan)}
+.rot-f select{color:var(--cyan);cursor:pointer}
+.seg-ed{background:var(--bg);border:1px solid var(--border2);border-radius:3px;padding:9px}
+.seg-list{margin-bottom:7px}
+.seg-row{display:flex;align-items:center;gap:5px;margin-bottom:4px}
+.seg-badge{font-size:9px;padding:2px 5px;border-radius:2px;font-weight:600;letter-spacing:1px;flex-shrink:0}
+.seg-badge.on{background:rgba(0,238,119,.15);color:var(--green);border:1px solid rgba(0,238,119,.3)}
+.seg-badge.off{background:rgba(255,34,51,.1);color:var(--red);border:1px solid rgba(255,34,51,.25)}
+.seg-ms{font-size:11px;color:var(--cyan);flex:1}
+.seg-inp{font-family:var(--mono);font-size:11px;background:var(--surface2);border:1px solid var(--border2);color:var(--cyan);padding:3px 6px;border-radius:2px;width:68px;outline:none}
+.seg-inp:focus{border-color:var(--cyan)}
+.seg-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;padding:0 2px;flex-shrink:0}
+.seg-del:hover{color:var(--red)}
+.seg-add-row{display:flex;gap:5px}
+.ref-mode{display:flex;border:1px solid var(--border2);border-radius:3px;overflow:hidden;margin-bottom:7px}
+.ref-mode-opt{flex:1;padding:5px;font-family:var(--mono);font-size:9px;text-align:center;cursor:pointer;color:var(--text2);background:transparent;border:none;transition:all .12s;text-transform:uppercase;letter-spacing:1px}
+.ref-mode-opt.active{background:rgba(255,170,0,.12);color:var(--amber)}
+.chk-lbl{display:flex;align-items:center;gap:4px;font-size:9px;cursor:pointer;text-transform:none;letter-spacing:0;color:var(--text2);margin-left:auto}
+.json-box{background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:9px;font-size:9px;color:var(--green);white-space:pre;overflow:auto;max-height:160px;line-height:1.7}
+.colors-list{display:flex;flex-direction:column;gap:3px;margin-top:6px}
+.color-seq-row{display:flex;align-items:center;gap:5px;padding:4px 6px;background:var(--surface2);border:1px solid var(--border);border-radius:3px}
+.color-seq-ms{font-family:var(--mono);font-size:10px;background:var(--bg);border:1px solid var(--border2);color:var(--cyan);padding:3px 5px;border-radius:2px;width:58px;outline:none}
+.color-seq-sel{font-family:var(--mono);font-size:10px;background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:3px 5px;border-radius:2px;flex:1;outline:none}
+.color-seq-sw{width:10px;height:10px;border-radius:50%;flex-shrink:0;border:1px solid rgba(255,255,255,.15)}
+.color-seq-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;padding:0 2px}
+.color-seq-del:hover{color:var(--red)}
+.diffuse-row{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:11px;color:var(--text2)}
+.hidden-warn{display:flex;align-items:center;gap:8px;background:rgba(255,170,0,.08);border:1px solid rgba(255,170,0,.3);border-radius:3px;padding:8px 12px;font-size:10px;color:var(--amber);margin-bottom:6px}
+.hidden-warn-icon{font-size:14px;flex-shrink:0}
+.tl-row.tl-hidden{opacity:.35}
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.modal-ov.hidden{display:none}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:5px;width:500px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.8)}
+.modal.wide{width:min(900px,92vw)}
+.json-editor-ta{flex:1;width:100%;background:var(--bg);border:none;border-top:1px solid var(--border);color:#8ec07c;font-family:var(--mono);font-size:12px;line-height:1.65;padding:14px 16px;outline:none;resize:none;tab-size:2}
+.json-editor-ta.has-error{border-top:2px solid var(--red)}
+.json-err-bar{padding:6px 16px;font-size:10px;color:var(--red);background:rgba(255,34,51,.07);border-top:1px solid rgba(255,34,51,.2);flex-shrink:0;font-family:var(--mono);min-height:28px;display:flex;align-items:center;gap:6px}
+.json-err-bar.ok{color:var(--green);background:rgba(0,238,119,.05);border-top-color:rgba(0,238,119,.15)}
+.json-fmt-row{display:flex;align-items:center;gap:8px;padding:8px 16px;border-top:1px solid var(--border);flex-shrink:0;background:var(--surface2)}
+.json-mode-tog{display:flex;border:1px solid var(--border2);border-radius:3px;overflow:hidden;flex-shrink:0}
+.json-mode-opt{font-family:var(--mono);font-size:9px;padding:4px 9px;border:none;background:transparent;color:var(--text2);cursor:pointer;transition:all .1s;text-transform:uppercase;letter-spacing:1px}
+.json-mode-opt.active{background:rgba(0,204,255,.12);color:var(--cyan)}
+.modal-hdr{display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border);flex-shrink:0}
+.modal-title{font-family:var(--display);font-size:13px;letter-spacing:3px;color:var(--white)}
+.modal-x{margin-left:auto;background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer;padding:0 4px;line-height:1}
+.modal-x:hover{color:var(--red)}
+.modal-body{flex:1;overflow-y:auto;padding:14px 16px}
+.modal-foot{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0}
+.ref-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border:1px solid var(--border);border-radius:3px;margin-bottom:5px;cursor:pointer;transition:all .1s}
+.ref-item:hover{border-color:var(--border2);background:rgba(255,255,255,.02)}
+.ref-item.sel{border-color:var(--amber);background:rgba(255,170,0,.05)}
+.ref-item-name{font-size:12px;flex:1}
+.ref-item-info{font-size:10px;color:var(--text2)}
+.ref-item-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;opacity:0;transition:opacity .1s}
+.ref-item:hover .ref-item-del{opacity:1}
+.ref-item-del:hover{color:var(--red)}
+.ref-sw{width:26px;height:26px;border-radius:3px;border:1px solid rgba(255,255,255,.1);flex-shrink:0}
+.ref-ed{background:var(--bg);border:1px solid var(--border2);border-radius:3px;padding:12px;margin-top:10px}
+.ref-ed-title{font-size:9px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;margin-bottom:10px}
+.rgba4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px}
+.rgba4-f label{display:block;font-size:9px;color:var(--text3);margin-bottom:3px}
+.rgba4-f input{width:100%;background:var(--surface2);border:1px solid var(--border2);color:var(--white);font-family:var(--mono);font-size:11px;padding:5px 7px;border-radius:2px;outline:none}
+.rgba4-f input:focus{border-color:var(--cyan)}
+.col-prev{height:24px;border-radius:2px;border:1px solid var(--border2);margin-bottom:8px}
+.pf-row{display:flex;align-items:center;gap:5px;margin-bottom:4px}
+.pf-key{font-family:var(--mono);font-size:10px;background:var(--surface2);border:1px solid var(--border2);color:var(--amber);padding:4px 7px;border-radius:2px;width:80px;outline:none}
+.pf-val{font-family:var(--mono);font-size:10px;background:var(--surface2);border:1px solid var(--border2);color:var(--cyan);padding:4px 7px;border-radius:2px;flex:1;outline:none}
+.pf-val:focus{border-color:var(--cyan)}
+.pf-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;padding:0 2px;transition:color .1s}
+.pf-del:hover{color:var(--red)}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:#1e2a38;border-radius:3px}
+/* ── Light Display ─────────────────────────────────────── */
+.mode-tog{display:flex;border:1px solid var(--border2);border-radius:3px;overflow:hidden;flex-shrink:0}
+.mode-btn{font-family:var(--mono);font-size:9px;padding:5px 11px;border:none;background:transparent;color:var(--text2);cursor:pointer;transition:all .12s;text-transform:uppercase;letter-spacing:1px;white-space:nowrap}
+.mode-btn:hover{color:var(--text)}
+.mode-btn.active{background:rgba(0,204,255,.12);color:var(--cyan)}
+.ld-toolbar{display:flex;align-items:center;gap:6px;padding:6px 12px;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;background:var(--surface)}
+.ld-shp{font-family:var(--mono);font-size:10px;padding:4px 9px;border:1px solid var(--border2);border-radius:2px;background:transparent;color:var(--text2);cursor:pointer;transition:all .12s}
+.ld-shp.active{background:rgba(0,204,255,.12);border-color:var(--cyan);color:var(--cyan)}
+.ld-shp:hover{color:var(--text);border-color:var(--text2)}
+.ld-tlbl{font-size:9px;color:var(--text2);letter-spacing:1px;text-transform:uppercase;white-space:nowrap}
+#ldCanvas{display:block;cursor:crosshair}
+#ldCanvasWrap{border-top:2px solid var(--border);transition:border-color .12s,box-shadow .12s}
+#ldCanvasWrap.ld-over{border-color:rgba(0,204,255,.7);box-shadow:inset 0 0 0 2px rgba(0,204,255,.25)}
+.ld-grab{cursor:grab!important}
+.ld-grab:active{cursor:grabbing!important}
+.ld-row{display:flex;align-items:center;gap:6px;padding:5px 9px;border-radius:3px;border:1px solid transparent;cursor:pointer;margin-bottom:2px;transition:background .1s,border-color .1s;font-size:10px}
+.ld-row:hover{background:rgba(255,255,255,.04);border-color:var(--border)}
+.ld-row.sel{background:rgba(0,204,255,.08);border-color:rgba(0,204,255,.3)}
+.ld-sw{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.ld-lbl{flex:1;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ld-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:11px;padding:0 2px;opacity:0;transition:opacity .1s}
+.ld-row:hover .ld-del{opacity:1}
+.ld-del:hover{color:var(--red)}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">AVS <em>EDITOR</em></div>
+  <div class="logo-tag">GTA SA</div>
+  <div class="vsep"></div>
+  <div class="state-tabs" id="stateTabs"></div>
+  <button class="h-btn" id="btnAddState" onclick="addState()">+ Estado</button>
+  <button class="h-btn" id="btnDupState" onclick="duplicateState()" title="Duplicar">⧉ Duplicar</button>
+  <div class="h-sep"></div>
+  <button class="h-btn amber" id="btnColors" onclick="openModal('colorModal')">🎨 Cores</button>
+  <button class="h-btn amber" id="btnRefs" onclick="openModal('propRefModal')">⚙️ Refs</button>
+  <button class="h-btn" id="btnJsonEditor" onclick="openJsonEditor()" style="font-size:11px;letter-spacing:0">{ } JSON</button>
+  <div class="vsep"></div>
+  <button class="h-btn blue" id="btnImport" onclick="showImportMenu(this)">↑ Importar ▾</button>
+  <button class="h-btn accent" id="btnExport" onclick="showExportMenu(this)">↓ Exportar ▾</button>
+  <div class="vsep"></div>
+  <select class="lang-sel" id="langSel" onchange="setLang(this.value)">
+    <option value="pt">🇧🇷 PT</option>
+    <option value="en">🇺🇸 EN</option>
+    <option value="es">🇪🇸 ES</option>
+    <option value="ru">🇷🇺 RU</option>
+    <option value="uk">🇺🇦 UK</option>
+  </select>
+</header>
+
+<!-- DROPDOWN MENUS -->
+<div id="dropMenu" style="display:none;position:fixed;z-index:2000;background:var(--surface);border:1px solid var(--border2);border-radius:3px;box-shadow:0 8px 24px rgba(0,0,0,.7);min-width:160px"></div>
+
+<div class="app">
+  <div class="left-panel">
+    <div class="pnl-hdr"><span id="leftPanelTitle" data-i18n="materials">Materiais</span><span class="cnt" id="matCount">0/255</span><button class="show-all-btn" id="showAllBtn" onclick="showAllMaterials()" style="display:none" title="Mostrar todos">👁 all</button></div>
+    <div class="mat-list" id="matList"></div>
+    <div class="lft-foot" id="matFoot">
+      <button class="h-btn" style="flex:1" id="btnAddMat" onclick="addMaterial()">+ Material</button>
+      <button class="h-btn" onclick="duplicateMaterial()" title="Duplicar">⧉</button>
+    </div>
+  </div>
+
+  <div class="center">
+    <!-- Always-visible topbar -->
+    <div class="prev-topbar">
+      <div class="prev-lbl" id="prevLbl">▶ Preview</div>
+      <div class="mode-tog">
+        <button class="mode-btn active" id="modeBtnGrid" onclick="setPreviewMode('grid')">⊞ Grid</button>
+        <button class="mode-btn" id="modeBtnLD" onclick="setPreviewMode('ld')">💡 Light Display</button>
+      </div>
+      <div class="prev-ctrl" id="gridCtrls">
+        <span class="ctrl-lbl">ZOOM</span>
+        <input type="range" min="32" max="76" value="50" id="zoomSlider" oninput="renderGrid()">
+        <button class="h-btn" onclick="togglePlay()" id="playBtn" data-i18n="pause">⏸ Pausar</button>
+      </div>
+      <div class="prev-ctrl" id="ldCtrls" style="display:none">
+        <button class="h-btn" onclick="togglePlay()" id="playBtnLD" data-i18n="pause">⏸ Pausar</button>
+      </div>
+    </div>
+    <!-- LD toolbar (LD mode only) -->
+    <div class="ld-toolbar" id="ldToolbar" style="display:none">
+      <span class="ld-tlbl" data-i18n="ldScale">Escala:</span>
+      <input type="range" id="ldSizeSlider" min="8" max="120" value="30" style="width:70px" oninput="ldUpdateSelectedSize(+this.value)">
+      <span id="ldSizeVal" style="font-size:10px;color:var(--cyan);width:24px">30</span>
+      <div class="vsep"></div>
+      <button class="h-btn" id="ldBtnDup" onclick="ldDuplicateSelected()" title="⧉">⧉</button>
+      <button class="h-btn" id="ldBtnDel" style="color:var(--red)" onclick="ldDeleteSelected()" title="✕">✕</button>
+      <button class="h-btn" id="ldBtnClear" style="margin-left:auto;font-size:9px;color:var(--text3)" onclick="ldClearAll()">🗑</button>
+    </div>
+    <!-- Scrollable body — switches content between modes -->
+    <div class="center-body" id="centerBody">
+      <!-- Single wrap used for both modes; timeline vs LD canvas toggled inside -->
+      <div id="gridModeWrap" style="display:flex;flex-direction:column;height:100%">
+        <div id="hiddenWarnBanner" style="display:none;margin:0 12px 6px;flex-shrink:0"></div>
+        <div class="grid" id="gridPreview" style="flex-shrink:0"></div>
+        <!-- Timeline (grid mode) -->
+        <div class="tl-wrap" id="tlWrap">
+          <div class="tl-hdr">
+            <div class="tl-lbl" data-i18n="timeline">Timeline</div>
+            <span class="ctrl-lbl" data-i18n="defaultMs">MS padrão:</span>
+            <input class="tl-ms-inp" type="number" id="defaultMs" value="500" min="10" max="9999">
+            <div class="tl-note" data-i18n="tlNote">Clique num bloco para editar · + para adicionar</div>
+          </div>
+          <div class="tl-body" id="tlBody"></div>
+        </div>
+        <!-- Light Display canvas (LD mode) -->
+        <div id="ldCanvasWrap" style="display:none;flex:1;min-height:0;position:relative;background:var(--bg);overflow:hidden">
+          <canvas id="ldCanvas" style="position:absolute;inset:0;width:100%;height:100%;cursor:crosshair"></canvas>
+          <div id="ldDropHint" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;pointer-events:none">
+            <div style="font-size:28px;opacity:0.2">↑</div>
+            <div id="ldDropHintText" data-i18n="ldDragHint" style="color:var(--text3);font-size:11px;opacity:0.4;text-align:center;line-height:1.6">
+              Arraste células do grid acima<br>para posicionar as luzes aqui
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="right-panel">
+    <div class="pnl-hdr" data-i18n="properties">Propriedades</div>
+    <div class="props-body" id="propsBody"><div class="no-sel" data-i18n="selectMat">Selecione um material</div></div>
+  </div>
+</div>
+
+<!-- MODAL CORES -->
+<div class="modal-ov hidden" id="colorModal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title" data-i18n="colorRefs">REFERÊNCIAS DE COR</div>
+      <button class="modal-x" onclick="closeModal('colorModal')">✕</button>
+    </div>
+    <div class="modal-body" id="colorModalBody"></div>
+    <div class="modal-foot">
+      <button class="h-btn" style="flex:1" id="btnAddColor" onclick="addColorRef()">+ Nova cor</button>
+      <button class="h-btn accent" onclick="closeModal('colorModal')" data-i18n="close">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PROP REFS -->
+<div class="modal-ov hidden" id="propRefModal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title" data-i18n="propRefs">REFERÊNCIAS DE PROPRIEDADE</div>
+      <button class="modal-x" onclick="closeModal('propRefModal')">✕</button>
+    </div>
+    <div class="modal-body" id="propRefModalBody"></div>
+    <div class="modal-foot">
+      <button class="h-btn" style="flex:1" id="btnAddRef" onclick="addPropRef()">+ Nova ref</button>
+      <button class="h-btn accent" onclick="closeModal('propRefModal')" data-i18n="close">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL JSON EDITOR -->
+<div class="modal-ov hidden" id="jsonEditorModal">
+  <div class="modal wide" style="height:80vh">
+    <div class="modal-hdr">
+      <div class="modal-title">{ } JSON EDITOR</div>
+      <div class="json-mode-tog" style="margin-left:16px">
+        <button class="json-mode-opt active" id="jemModeSirens" onclick="setJsonEditorMode('sirens')">Sirens</button>
+        <button class="json-mode-opt" id="jemModeFull" onclick="setJsonEditorMode('full')">Full .jsonc</button>
+      </div>
+      <div style="flex:1"></div>
+      <button class="h-btn" onclick="jemFormat()" style="margin-right:6px" data-i18n="format" title="">⌥ Formatar</button>
+      <button class="modal-x" onclick="closeModal('jsonEditorModal')">✕</button>
+    </div>
+    <textarea class="json-editor-ta" id="jemTextarea" spellcheck="false" oninput="jemValidate()"></textarea>
+    <div class="json-err-bar" id="jemErrBar">—</div>
+    <div class="json-fmt-row">
+      <span style="font-size:10px;color:var(--text3);flex:1">Edite o JSON diretamente e clique em Aplicar para carregar no editor</span>
+      <button class="h-btn" onclick="jemRefresh()" title="Recarregar do estado atual">↺ Recarregar</button>
+      <button class="h-btn accent" onclick="jemApply()">✓ Aplicar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  I18N
+// ═══════════════════════════════════════════════════════════
+var LANGS = {
+  pt:{
+    materials:'Materiais', properties:'Propriedades', timeline:'Timeline',
+    selectMat:'Selecione um material', pause:'⏸ Pausar', play:'▶ Play',
+    defaultMs:'MS padrão:', tlNote:'Clique num bloco para editar · + para adicionar',
+    colorRefs:'REFERÊNCIAS DE COR', propRefs:'REFERÊNCIAS DE PROPRIEDADE',
+    close:'Fechar', addColor:'+ Nova cor', addRef:'+ Nova ref',
+    color:'Cor', initialState:'Estado inicial', sizeInertia:'Size / Inertia',
+    manual:'Manual', reference:'Referência', shadow:'Shadow', rotator:'Rotator',
+    activate:'ativar', pattern:'Pattern', timeMs:'Time (ms por rotação)',
+    jsonMat:'JSON deste material', segment:'Segmento',
+    addSegment:'+ Segmento', clear:'Limpar',
+    speed:'SPEED (ms)', radius:'RADIUS (°)', offset:'OFFSET (°)', type:'TYPE',
+    direction:'Direção', texture:'TEXTURE (type)',
+    addState:'+ Estado', duplicate:'⧉ Duplicar',
+    import:'↑ Importar ▾', export:'↓ Exportar ▾',
+    importJson:'Importar .json', importJsonc:'Importar .jsonc (Model Extras)',
+    exportJson:'Exportar .json', exportJsonc:'Exportar .jsonc (Model Extras)',
+    editColors:'✏️ editar cores', editRefs:'✏️ editar',
+    noRef:'(sem campos)', noColor:'Nenhuma cor', noRefs:'Nenhuma referência',
+    editingColor:'Editando:', editingRef:'Editando:',
+    quickPicker:'picker rápido', addField:'+ Campo',
+    mat:'Material', segs:'seg.', addMat:'+ Material',
+    timeDesc:'Tempo para completar',
+    confirmDelete:'Apagar', alreadyExists:'Já existe!',
+    invalidJson:'JSON inválido:', needState:'Precisa de ao menos 1 estado!',
+    matExists:'Material já existe!',
+    jsoncMeta:'Autor', jsoncDesc:'Descrição',
+    hiddenWarn:'materiais ocultos no preview — não afeta o export', showAll:'mostrar todos',
+    hide:'ocultar no preview', show:'mostrar no preview', ldLights:'Luzes',
+    ldScale:'Escala:', ldDragHint:'Arraste células do grid<br>para posicionar as luzes', ldDragTitle:'Arraste para posicionar', ldDupLight:'Duplicar luz', ldDelLight:'Apagar luz', ldClearAll:'Limpar tudo', ldClearConfirm:'Apagar todas as luzes posicionadas?', ldSidebarEmpty:'Arraste células<br>do grid para o<br>painel abaixo', duplicateMat:'Duplicar material', format:'⌥ Formatar', formatTitle:'Formatar / Indentar', lightDisplay:'💡 Light Display', gridMode:'⊞ Grid', zoomLabel:'ZOOM',
+  },
+  en:{
+    materials:'Materials', properties:'Properties', timeline:'Timeline',
+    selectMat:'Select a material', pause:'⏸ Pause', play:'▶ Play',
+    defaultMs:'Default ms:', tlNote:'Click a block to edit · + to add',
+    colorRefs:'COLOR REFERENCES', propRefs:'PROPERTY REFERENCES',
+    close:'Close', addColor:'+ New color', addRef:'+ New ref',
+    color:'Color', initialState:'Initial state', sizeInertia:'Size / Inertia',
+    manual:'Manual', reference:'Reference', shadow:'Shadow', rotator:'Rotator',
+    activate:'enable', pattern:'Pattern', timeMs:'Time (ms per rotation)',
+    jsonMat:'JSON of this material', segment:'Segment',
+    addSegment:'+ Segment', clear:'Clear',
+    speed:'SPEED (ms)', radius:'RADIUS (°)', offset:'OFFSET (°)', type:'TYPE',
+    direction:'Direction', texture:'TEXTURE (type)',
+    addState:'+ State', duplicate:'⧉ Duplicate',
+    import:'↑ Import ▾', export:'↓ Export ▾',
+    importJson:'Import .json', importJsonc:'Import .jsonc (Model Extras)',
+    exportJson:'Export .json', exportJsonc:'Export .jsonc (Model Extras)',
+    editColors:'✏️ edit colors', editRefs:'✏️ edit',
+    noRef:'(no fields)', noColor:'No colors', noRefs:'No references',
+    editingColor:'Editing:', editingRef:'Editing:',
+    quickPicker:'quick picker', addField:'+ Field',
+    mat:'Material', segs:'segs.', addMat:'+ Material',
+    timeDesc:'Time to complete',
+    confirmDelete:'Delete', alreadyExists:'Already exists!',
+    invalidJson:'Invalid JSON:', needState:'Need at least 1 state!',
+    matExists:'Material already exists!',
+    jsoncMeta:'Author', jsoncDesc:'Description',
+    hiddenWarn:'materials hidden in preview — does not affect export', showAll:'show all',
+    hide:'hide in preview', show:'show in preview', ldLights:'Lights',
+    ldScale:'Scale:', ldDragHint:'Drag grid cells<br>to place lights here', ldDragTitle:'Drag to place', ldDupLight:'Duplicate light', ldDelLight:'Delete light', ldClearAll:'Clear all', ldClearConfirm:'Delete all placed lights?', ldSidebarEmpty:'Drag cells<br>from the grid<br>to place lights', duplicateMat:'Duplicate material', format:'⌥ Format', formatTitle:'Format / Indent', lightDisplay:'💡 Light Display', gridMode:'⊞ Grid', zoomLabel:'ZOOM',
+  },
+  es:{
+    materials:'Materiales', properties:'Propiedades', timeline:'Línea de tiempo',
+    selectMat:'Selecciona un material', pause:'⏸ Pausar', play:'▶ Play',
+    defaultMs:'MS predeterminado:', tlNote:'Clic en un bloque para editar · + para agregar',
+    colorRefs:'REFERENCIAS DE COLOR', propRefs:'REFERENCIAS DE PROPIEDAD',
+    close:'Cerrar', addColor:'+ Nuevo color', addRef:'+ Nueva ref',
+    color:'Color', initialState:'Estado inicial', sizeInertia:'Size / Inercia',
+    manual:'Manual', reference:'Referencia', shadow:'Sombra', rotator:'Rotador',
+    activate:'activar', pattern:'Patrón', timeMs:'Tiempo (ms por rotación)',
+    jsonMat:'JSON de este material', segment:'Segmento',
+    addSegment:'+ Segmento', clear:'Limpiar',
+    speed:'VELOCIDAD (ms)', radius:'RADIO (°)', offset:'OFFSET (°)', type:'TIPO',
+    direction:'Dirección', texture:'TEXTURA (tipo)',
+    addState:'+ Estado', duplicate:'⧉ Duplicar',
+    import:'↑ Importar ▾', export:'↓ Exportar ▾',
+    importJson:'Importar .json', importJsonc:'Importar .jsonc (Model Extras)',
+    exportJson:'Exportar .json', exportJsonc:'Exportar .jsonc (Model Extras)',
+    editColors:'✏️ editar colores', editRefs:'✏️ editar',
+    noRef:'(sin campos)', noColor:'Sin colores', noRefs:'Sin referencias',
+    editingColor:'Editando:', editingRef:'Editando:',
+    quickPicker:'selector rápido', addField:'+ Campo',
+    mat:'Material', segs:'seg.', addMat:'+ Material',
+    timeDesc:'Tiempo para completar',
+    confirmDelete:'Borrar', alreadyExists:'¡Ya existe!',
+    invalidJson:'JSON inválido:', needState:'¡Necesita al menos 1 estado!',
+    matExists:'¡El material ya existe!',
+    jsoncMeta:'Autor', jsoncDesc:'Descripción',
+    hiddenWarn:'materiales ocultos en preview — no afecta el export', showAll:'mostrar todos',
+    hide:'ocultar en preview', show:'mostrar en preview', ldLights:'Luces',
+    ldScale:'Escala:', ldDragHint:'Arrastra celdas del grid<br>para posicionar las luces', ldDragTitle:'Arrastrar para posicionar', ldDupLight:'Duplicar luz', ldDelLight:'Eliminar luz', ldClearAll:'Limpiar todo', ldClearConfirm:'¿Eliminar todas las luces?', ldSidebarEmpty:'Arrastra celdas<br>del grid al<br>panel inferior', duplicateMat:'Duplicar material', format:'⌥ Formatear', formatTitle:'Formatear / Indentar', lightDisplay:'💡 Light Display', gridMode:'⊞ Grid', zoomLabel:'ZOOM',
+  },
+  ru:{
+    materials:'Материалы', properties:'Свойства', timeline:'Тайм-лайн',
+    selectMat:'Выберите материал', pause:'⏸ Пауза', play:'▶ Играть',
+    defaultMs:'Мс по умолч.:', tlNote:'Клик по блоку для редактирования · + для добавления',
+    colorRefs:'ЦВЕТОВЫЕ ССЫЛКИ', propRefs:'ССЫЛКИ СВОЙСТВ',
+    close:'Закрыть', addColor:'+ Новый цвет', addRef:'+ Новая ссылка',
+    color:'Цвет', initialState:'Начальное состояние', sizeInertia:'Размер / Инерция',
+    manual:'Вручную', reference:'Ссылка', shadow:'Тень', rotator:'Ротатор',
+    activate:'включить', pattern:'Паттерн', timeMs:'Время (мс на оборот)',
+    jsonMat:'JSON этого материала', segment:'Сегмент',
+    addSegment:'+ Сегмент', clear:'Очистить',
+    speed:'СКОРОСТЬ (мс)', radius:'РАДИУС (°)', offset:'СМЕЩЕНИЕ (°)', type:'ТИП',
+    direction:'Направление', texture:'ТЕКСТУРА (тип)',
+    addState:'+ Состояние', duplicate:'⧉ Дублировать',
+    import:'↑ Импорт ▾', export:'↓ Экспорт ▾',
+    importJson:'Импорт .json', importJsonc:'Импорт .jsonc (Model Extras)',
+    exportJson:'Экспорт .json', exportJsonc:'Экспорт .jsonc (Model Extras)',
+    editColors:'✏️ изменить цвета', editRefs:'✏️ изменить',
+    noRef:'(нет полей)', noColor:'Нет цветов', noRefs:'Нет ссылок',
+    editingColor:'Редактирование:', editingRef:'Редактирование:',
+    quickPicker:'быстрый выбор', addField:'+ Поле',
+    mat:'Материал', segs:'сег.', addMat:'+ Материал',
+    timeDesc:'Время для завершения',
+    confirmDelete:'Удалить', alreadyExists:'Уже существует!',
+    invalidJson:'Неверный JSON:', needState:'Нужно хотя бы 1 состояние!',
+    matExists:'Материал уже существует!',
+    jsoncMeta:'Автор', jsoncDesc:'Описание',
+    hiddenWarn:'материалы скрыты в превью — экспорт не затронут', showAll:'показать все',
+    hide:'скрыть в превью', show:'показать в превью', ldLights:'Огни',
+    ldScale:'Масштаб:', ldDragHint:'Перетащите ячейки сетки<br>для размещения огней', ldDragTitle:'Перетащить для размещения', ldDupLight:'Дублировать огонь', ldDelLight:'Удалить огонь', ldClearAll:'Очистить всё', ldClearConfirm:'Удалить все огни?', ldSidebarEmpty:'Перетащите ячейки<br>из сетки на<br>панель ниже', duplicateMat:'Дублировать материал', format:'⌥ Форматировать', formatTitle:'Форматировать / Отступ', lightDisplay:'💡 Light Display', gridMode:'⊞ Grid', zoomLabel:'МАСШТАБ',
+  },
+  uk:{
+    materials:'Матеріали', properties:'Властивості', timeline:'Часова шкала',
+    selectMat:'Оберіть матеріал', pause:'⏸ Пауза', play:'▶ Грати',
+    defaultMs:'Мс за замовч.:', tlNote:'Клік по блоку для редагування · + для додавання',
+    colorRefs:'КОЛЬОРОВІ ПОСИЛАННЯ', propRefs:'ПОСИЛАННЯ ВЛАСТИВОСТЕЙ',
+    close:'Закрити', addColor:'+ Новий колір', addRef:'+ Нове посилання',
+    color:'Колір', initialState:'Початковий стан', sizeInertia:'Розмір / Інерція',
+    manual:'Вручну', reference:'Посилання', shadow:'Тінь', rotator:'Ротатор',
+    activate:'увімкнути', pattern:'Патерн', timeMs:'Час (мс на оберт)',
+    jsonMat:'JSON цього матеріалу', segment:'Сегмент',
+    addSegment:'+ Сегмент', clear:'Очистити',
+    speed:'ШВИДКІСТЬ (мс)', radius:'РАДІУС (°)', offset:'ЗМІЩЕННЯ (°)', type:'ТИП',
+    direction:'Напрямок', texture:'ТЕКСТУРА (тип)',
+    addState:'+ Стан', duplicate:'⧉ Дублювати',
+    import:'↑ Імпорт ▾', export:'↓ Експорт ▾',
+    importJson:'Імпорт .json', importJsonc:'Імпорт .jsonc (Model Extras)',
+    exportJson:'Експорт .json', exportJsonc:'Експорт .jsonc (Model Extras)',
+    editColors:'✏️ змінити кольори', editRefs:'✏️ змінити',
+    noRef:'(немає полів)', noColor:'Немає кольорів', noRefs:'Немає посилань',
+    editingColor:'Редагування:', editingRef:'Редагування:',
+    quickPicker:'швидкий вибір', addField:'+ Поле',
+    mat:'Матеріал', segs:'сег.', addMat:'+ Матеріал',
+    timeDesc:'Час для завершення',
+    confirmDelete:'Видалити', alreadyExists:'Вже існує!',
+    invalidJson:'Невірний JSON:', needState:'Потрібен хоча б 1 стан!',
+    matExists:'Матеріал вже існує!',
+    jsoncMeta:'Автор', jsoncDesc:'Опис',
+    hiddenWarn:'матеріали приховані в превью — експорт не змінено', showAll:'показати всі',
+    hide:'приховати в превью', show:'показати в превью', ldLights:'Вогні',
+    ldScale:'Масштаб:', ldDragHint:'Перетягніть клітинки сітки<br>для розміщення вогнів', ldDragTitle:'Перетягніть для розміщення', ldDupLight:'Дублювати вогонь', ldDelLight:'Видалити вогонь', ldClearAll:'Очистити все', ldClearConfirm:'Видалити всі вогні?', ldSidebarEmpty:'Перетягніть клітинки<br>з сітки на<br>панель нижче', duplicateMat:'Дублювати матеріал', format:'⌥ Форматувати', formatTitle:'Форматувати / Відступ', lightDisplay:'💡 Light Display', gridMode:'⊞ Grid', zoomLabel:'МАСШТАБ',
+  }
+};
+var lang='pt';
+function T(k){return (LANGS[lang]&&LANGS[lang][k])||LANGS['en'][k]||k}
+function setLang(l){
+  lang=l;
+  document.querySelectorAll('[data-i18n]').forEach(function(el){
+    var k=el.getAttribute('data-i18n');
+    if(el.tagName==='BUTTON'||el.tagName==='DIV'||el.tagName==='SPAN'){
+      // preserve innerHTML for elements that use it
+      el.textContent=T(k);
+    }
+  });
+  // Update buttons with special text
+  document.getElementById('btnAddState').textContent=T('addState');
+  document.getElementById('btnDupState').textContent=T('duplicate');
+  document.getElementById('btnImport').textContent=T('import');
+  document.getElementById('btnExport').textContent=T('export');
+  document.getElementById('btnAddMat').textContent=T('addMat');
+  document.getElementById('btnAddColor').textContent=T('addColor');
+  document.getElementById('btnAddRef').textContent=T('addRef');
+  var pb=document.getElementById('playBtn');
+  if(pb) pb.textContent=playing?T('pause'):T('play');
+  var pb2=document.getElementById('playBtnLD');
+  if(pb2) pb2.textContent=playing?T('pause'):T('play');
+  // Mode buttons
+  var mg=document.getElementById('modeBtnGrid'); if(mg) mg.textContent=T('gridMode');
+  var ml=document.getElementById('modeBtnLD');  if(ml) ml.textContent=T('lightDisplay');
+  // LD toolbar
+  var ldSc=document.querySelector('[data-i18n="ldScale"]'); if(ldSc) ldSc.textContent=T('ldScale');
+  var ldBDup=document.getElementById('ldBtnDup'); if(ldBDup) ldBDup.title=T('ldDupLight');
+  var ldBDel=document.getElementById('ldBtnDel'); if(ldBDel) ldBDel.title=T('ldDelLight');
+  var ldBC=document.getElementById('ldBtnClear'); if(ldBC) ldBC.title=T('ldClearAll');
+  var ldHt=document.getElementById('ldDropHintText'); if(ldHt) ldHt.innerHTML=T('ldDragHint');
+  // JSON editor format button
+  var fmtB=document.querySelector('[data-i18n="format"]'); if(fmtB){fmtB.textContent=T('format');fmtB.title=T('formatTitle');}
+  updateShowAllBtn();
+  _propsRenderedFor=null;
+  renderAll();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════════════════════════
+var colorRefs={};
+var propRefs={};
+var states={};
+var stateOrder=[];
+var matOrders={};
+var hiddenMats={};  // { stateName: { id: true } } — preview only, never exported
+var activeState=null;
+var selectedId=null;
+var selectedSegIdx=null;
+var selColorRef=null;
+var selPropRef=null;
+var runtime={};
+var playing=true;
+var _propsRenderedFor=null;
+var jsoncContext=null; // stores the non-sirens parts of an imported .jsonc
+
+// ═══════════════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════════════
+function rgb2hex(r,g,b){return '#'+[r,g,b].map(function(v){return Math.max(0,Math.min(255,v||0)).toString(16).padStart(2,'0')}).join('')}
+function hex2rgb(h){return{r:parseInt(h.slice(1,3),16),g:parseInt(h.slice(3,5),16),b:parseInt(h.slice(5,7),16)}}
+function getColor(name){return colorRefs[name]||{red:180,green:180,blue:180,alpha:200}}
+function getMats(){return states[activeState]||{}}
+function getOrder(){return(matOrders[activeState]||[]).filter(function(id){return states[activeState]&&states[activeState][id]})}
+function nextId(){var m=getMats(),i=1;while(m[String(i)])i++;return String(i)}
+function getSegState(m,idx){return(m.state+idx)%2===0?1:0}
+function isRotator(m){return !!(m&&m.rotator)}
+function matLabel(m){
+  var s=m.color;if(m.reference) s+=' ['+m.reference+']';if(isRotator(m)) s+=' ↻';return s;
+}
+function deepMat(m){
+  var c={color:m.color,state:m.state,pattern:m.pattern?m.pattern.slice():[]};
+  if(m.reference) c.reference=m.reference;
+  else{c.size=m.size;if(m.inertia!=null) c.inertia=m.inertia}
+  if(m.type) c.type=m.type;
+  if(m.shadow) c.shadow={offset:m.shadow.offset,size:m.shadow.size,type:m.shadow.type};
+  if(m.rotator) c.rotator=Object.assign({},m.rotator);
+  if(m.colors) c.colors=m.colors.map(function(e){return[e[0],e[1]]});
+  if(m.diffuse) c.diffuse=true;
+  // Copy custom fields
+  var builtins={color:1,state:1,pattern:1,reference:1,size:1,inertia:1,type:1,shadow:1,rotator:1,colors:1,diffuse:1,_savedPattern:1};
+  for(var cf in m){if(!builtins[cf]) c[cf]=m[cf];}
+  return c;
+}
+
+// ─── Hidden materials (preview only) ─────────────────────────
+function isHidden(id){return !!(hiddenMats[activeState]&&hiddenMats[activeState][id])}
+function toggleHidden(id,e){
+  if(e) e.stopPropagation();
+  if(!hiddenMats[activeState]) hiddenMats[activeState]={};
+  if(hiddenMats[activeState][id]) delete hiddenMats[activeState][id];
+  else hiddenMats[activeState][id]=true;
+  renderSidebar();renderGrid();renderTimeline();updateShowAllBtn();updateHiddenBanner();
+}
+function showAllMaterials(){
+  hiddenMats[activeState]={};
+  renderSidebar();renderGrid();renderTimeline();updateShowAllBtn();updateHiddenBanner();
+}
+function countHidden(){
+  var h=hiddenMats[activeState];if(!h) return 0;return Object.keys(h).filter(function(id){return h[id]}).length;
+}
+function updateShowAllBtn(){
+  var btn=document.getElementById('showAllBtn');if(!btn) return;
+  var n=countHidden();
+  btn.style.display=n?'inline-block':'none';
+  btn.textContent='👁 '+T('showAll')+' ('+n+')';
+}
+
+// ─── JSONC parsing ───────────────────────────────────────────
+function parseJsonc(str){
+  // Strip // line comments (not inside strings)
+  var out='',inStr=false,i=0;
+  while(i<str.length){
+    if(!inStr&&str[i]==='/'&&str[i+1]==='/'){while(i<str.length&&str[i]!=='\n')i++;continue}
+    if(str[i]==='"'&&(i===0||str[i-1]!=='\\')) inStr=!inStr;
+    out+=str[i++];
+  }
+  // Remove trailing commas before } or ]
+  out=out.replace(/,(\s*[}\]])/g,'$1');
+  return JSON.parse(out);
+}
+
+// ─── Expand compact pattern [[count,on,off],...] → flat [on,off,...] ─
+function expandPattern(raw){
+  if(!Array.isArray(raw)||!raw.length) return [];
+  // If first element is a number, it's already flat
+  if(typeof raw[0]==='number') return raw.slice();
+  // Each entry is [count, on_ms, off_ms]
+  var out=[];
+  for(var i=0;i<raw.length;i++){
+    var entry=raw[i];
+    if(Array.isArray(entry)){
+      var cnt=entry[0]||1,on=entry[1]||200,off=entry[2]!=null?entry[2]:200;
+      for(var j=0;j<cnt;j++){out.push(on);out.push(off);}
+    } else if(typeof entry==='number'){
+      out.push(entry); // mixed flat element
+    }
+  }
+  return out;
+}
+
+// ─── Normalise colors array [[ms, color|obj], ...] ───────────────────
+function normaliseColorsArr(arr){
+  if(!Array.isArray(arr)) return null;
+  return arr.map(function(entry){
+    return [entry[0], normaliseColor(entry[1],'_cc'+entry[0])];
+  });
+}
+function normaliseColor(val,autoName){
+  if(typeof val==='string') return val;
+  if(typeof val==='object'&&val!==null&&'red' in val){
+    // Inline object: add to colorRefs if not already there
+    var hex=rgb2hex(val.red,val.green,val.blue);
+    // Check if an identical color already exists
+    var names=Object.keys(colorRefs);
+    for(var i=0;i<names.length;i++){
+      var c=colorRefs[names[i]];
+      if(c.red===val.red&&c.green===val.green&&c.blue===val.blue&&c.alpha===(val.alpha!=null?val.alpha:255)) return names[i];
+    }
+    var name=autoName||('inline_'+hex.slice(1));
+    colorRefs[name]={red:val.red||0,green:val.green||0,blue:val.blue||0,alpha:val.alpha!=null?val.alpha:255};
+    return name;
+  }
+  return String(val);
+}
+
+// ─── Normalise direction (may be 0/1/2 or string) ───────────
+function normaliseDir(d){
+  if(d===0||d==='0'||d==='clockwise') return 'clockwise';
+  if(d===1||d==='1'||d==='counter-clockwise') return 'counter-clockwise';
+  if(d===2||d==='2'||d==='switch') return 'switch';
+  return 'clockwise';
+}
+
+// ─── Load sirens object into editor state ────────────────────
+function loadSirens(sirens){
+  colorRefs={};propRefs={};states={};stateOrder=[];matOrders={};hiddenMats={};
+  if(sirens.references){
+    if(sirens.references.colors){
+      var cols=sirens.references.colors;
+      for(var n in cols) colorRefs[n]={red:cols[n].red,green:cols[n].green,blue:cols[n].blue,alpha:cols[n].alpha!=null?cols[n].alpha:255};
+    }
+    for(var key in sirens.references){
+      if(key==='colors') continue;
+      var v=sirens.references[key];
+      if(typeof v==='object'&&v!==null&&!('red' in v)) propRefs[key]=Object.assign({},v);
+    }
+  }
+  if(sirens.states){
+    for(var sName in sirens.states){
+      states[sName]={};stateOrder.push(sName);matOrders[sName]=[];hiddenMats[sName]={};
+      for(var id in sirens.states[sName]){
+        var m=sirens.states[sName][id];
+        var entry={state:m.state!=null?m.state:0};
+        // Color: string ref or inline object
+        entry.color=normaliseColor(m.color,'_c'+id);
+        // Rotator or pattern
+        if(m.rotator){
+          var rt=Object.assign({},m.rotator);
+          // Normalise direction string (numeric→string) but don't add default
+          if(rt.direction!=null) rt.direction=normaliseDir(rt.direction);
+          // Convert time→speed for internal use
+          if(rt.time!=null&&rt.speed==null){rt.speed=rt.time;delete rt.time;}
+          // Don't store type on rotator sub-object — it's implied
+          delete rt.type;
+          entry.rotator=rt;
+          entry.pattern=[];
+        } else {
+          entry.pattern=expandPattern(m.pattern||[]);
+        }
+        // Size/inertia/reference
+        if(m.reference) entry.reference=m.reference;
+        else{entry.size=m.size!=null?m.size:0.3;if(m.inertia!=null) entry.inertia=m.inertia}
+        if(m.type) entry.type=m.type;
+        if(m.shadow) entry.shadow={offset:m.shadow.offset||0,size:m.shadow.size||1,type:m.shadow.type||'comet'};
+        // colors sequence & diffuse
+        if(m.colors) entry.colors=normaliseColorsArr(m.colors);
+        // diffuse: boolean OR {color:true} object form
+        if(m.diffuse!=null){
+          if(typeof m.diffuse==='object'&&m.diffuse!==null) entry.diffuse=m.diffuse;
+          else entry.diffuse=!!m.diffuse;
+        }
+        states[sName][id]=entry;matOrders[sName].push(id);
+      }
+    }
+    activeState=stateOrder[0]||null;
+  }
+}
+
+// ─── Build sirens export object ──────────────────────────────
+function buildSirensObj(){
+  var out={references:{colors:{}},states:{}};
+  var cn=Object.keys(colorRefs);
+  for(var i=0;i<cn.length;i++) out.references.colors[cn[i]]={red:colorRefs[cn[i]].red,green:colorRefs[cn[i]].green,blue:colorRefs[cn[i]].blue,alpha:colorRefs[cn[i]].alpha};
+  var pn=Object.keys(propRefs);
+  for(var j=0;j<pn.length;j++) out.references[pn[j]]=Object.assign({},propRefs[pn[j]]);
+  for(var s=0;s<stateOrder.length;s++){
+    var sName=stateOrder[s];out.states[sName]={};
+    var order=(matOrders[sName]||[]).filter(function(id){return states[sName]&&states[sName][id]});
+    for(var k=0;k<order.length;k++){
+      var id=order[k],m=states[sName][id];
+      var e={color:m.color};
+      if(isRotator(m)){
+        // Rotator materials: state and type come from the reference — do NOT export them
+        // Only export per-material rotator overrides: time, direction (if non-default), radius, offset
+        if(m.reference) e.reference=m.reference;
+        if(m.rotator){
+          var er={};
+          var rt=m.rotator;
+          // time (stored as speed internally, exported as time)
+          if(rt.speed!=null) er.time=rt.speed;
+          else if(rt.time!=null) er.time=rt.time;
+          // direction only if not the clockwise default
+          if(rt.direction&&rt.direction!=='clockwise') er.direction=rt.direction;
+          // radius and offset only if explicitly set / non-default
+          if(rt.radius!=null&&rt.radius!==360) er.radius=rt.radius;
+          if(rt.offset!=null&&rt.offset!==0) er.offset=rt.offset;
+          e.rotator=er;
+        }
+        if(m.shadow) e.shadow={offset:m.shadow.offset,size:m.shadow.size,type:m.shadow.type};
+      } else {
+        e.state=m.state;
+        e.pattern=m.pattern.slice();
+        if(m.reference) e.reference=m.reference;
+        else{e.size=m.size;if(m.inertia!=null) e.inertia=m.inertia}
+        if(m.shadow) e.shadow={offset:m.shadow.offset,size:m.shadow.size,type:m.shadow.type};
+      }
+      if(m.colors&&m.colors.length) e.colors=m.colors.map(function(c){return[c[0],c[1]]});
+      if(m.diffuse){
+        // Rotators use {color:true}, normal materials use true
+        e.diffuse=isRotator(m)?{color:true}:true;
+      }
+      // Custom fields (manual params not in the standard set)
+      var builtins={color:1,state:1,pattern:1,reference:1,size:1,inertia:1,type:1,shadow:1,rotator:1,colors:1,diffuse:1,_savedPattern:1};
+      for(var cf in m){if(!builtins[cf]) e[cf]=m[cf];}
+      out.states[sName][id]=e;
+    }
+  }
+  return out;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RUNTIME
+// ═══════════════════════════════════════════════════════════
+function initRT(id){
+  var m=getMats()[id];if(!m) return;
+  var t=0;if(m.pattern) for(var i=0;i<m.pattern.length;i++) t+=m.pattern[i];
+  var now=performance.now();
+  // For rotators: sync r.ts with any existing rotator that has the same speed
+  // so duplicated rotators stay in phase with the original
+  var startTs=now;
+  if(isRotator(m)){
+    var mySpeed=m.rotator?(m.rotator.speed||m.rotator.time||1000):1000;
+    var mats=getMats();
+    for(var oid in runtime){
+      if(oid===id) continue;
+      var om=mats[oid];
+      if(om&&isRotator(om)){
+        var oSpeed=om.rotator?(om.rotator.speed||om.rotator.time||1000):1000;
+        if(oSpeed===mySpeed){startTs=runtime[oid].ts;break;}
+      }
+    }
+  }
+  runtime[id]={count:0,ts:startTs,total:t,state:m.state,angle:0,colorIdx:0,colorTs:now};
+}
+// Build the full color sequence for a material:
+// seq[0] = {ms: colors[0][0], color: m.color}  ← main color shows for colors[0][0] ms
+// seq[1] = {ms: colors[1][0]|remainder, color: colors[0][1]}
+// seq[n] = {ms: remainder, color: colors[n-1][1]}  ← last extra gets rest of cycle
+function _buildColorSeq(m,total){
+  if(!m.colors||!m.colors.length) return null;
+  // Main color shows for colors[0][0] ms
+  var seq=[{ms:m.colors[0][0],color:m.color}];
+  var used=m.colors[0][0];
+  for(var j=0;j<m.colors.length;j++){
+    var dur;
+    if(j<m.colors.length-1){
+      dur=m.colors[j+1][0]; // next entry's [0] = how long THIS extra shows
+    } else {
+      dur=Math.max(1,(total||0)-used); // last extra = remainder of cycle
+    }
+    seq.push({ms:dur,color:m.colors[j][1]});
+    used+=dur;
+  }
+  return seq;
+}
+function rebuildRT(){runtime={};var o=getOrder();for(var i=0;i<o.length;i++) initRT(o[i])}
+function rebuildRTTotal(id){
+  var m=getMats()[id];if(!m||!runtime[id]) return;
+  var t=0;if(m.pattern) for(var i=0;i<m.pattern.length;i++) t+=m.pattern[i];
+  runtime[id].total=t;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  STATES
+// ═══════════════════════════════════════════════════════════
+function addState(name){
+  var n=name||('State '+(stateOrder.length+1));
+  if(states[n]){alert(T('alreadyExists'));return}
+  states[n]={};stateOrder.push(n);matOrders[n]=[];hiddenMats[n]={};
+  activeState=n;selectedId=null;rebuildRT();renderAll();
+}
+function deleteState(name){
+  if(stateOrder.length<=1){alert(T('needState'));return}
+  if(!confirm(T('confirmDelete')+' "'+name+'"?')) return;
+  delete states[name];delete matOrders[name];delete hiddenMats[name];
+  stateOrder=stateOrder.filter(function(s){return s!==name});
+  if(activeState===name){activeState=stateOrder[0];selectedId=null}
+  rebuildRT();renderAll();
+}
+function renameState(oldName,newName){
+  newName=(newName||'').trim();if(!newName||newName===oldName) return;
+  if(states[newName]){alert(T('alreadyExists'));return}
+  states[newName]=states[oldName];matOrders[newName]=matOrders[oldName];hiddenMats[newName]=hiddenMats[oldName]||{};
+  delete states[oldName];delete matOrders[oldName];delete hiddenMats[oldName];
+  stateOrder=stateOrder.map(function(s){return s===oldName?newName:s});
+  if(activeState===oldName) activeState=newName;
+  renderAll();
+}
+function switchState(name){
+  if(name===activeState) return;
+  activeState=name;selectedId=null;selectedSegIdx=null;rebuildRT();renderAll();
+}
+function duplicateState(){
+  if(!activeState) return;
+  var base=activeState+' (copy)',n=base,i=2;while(states[n]) n=base+' '+i++;
+  states[n]={};matOrders[n]=[];hiddenMats[n]={};
+  var src=matOrders[activeState]||[];
+  for(var j=0;j<src.length;j++){
+    var id=src[j];
+    if(states[activeState][id]) states[n][id]=deepMat(states[activeState][id]);
+    matOrders[n].push(id);
+  }
+  stateOrder.splice(stateOrder.indexOf(activeState)+1,0,n);
+  activeState=n;selectedId=null;rebuildRT();renderAll();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  MATERIALS
+// ═══════════════════════════════════════════════════════════
+function addMaterial(data){
+  if(!activeState) return;
+  if(Object.keys(getMats()).length>=255) return;
+  var id=nextId();
+  var firstColor=Object.keys(colorRefs)[0]||'red';
+  states[activeState][id]=data?deepMat(data):{color:firstColor,pattern:[500,500],state:0,size:0.3};
+  matOrders[activeState].push(id);
+  initRT(id);selectedId=id;selectedSegIdx=null;renderAll();
+}
+function deleteMaterial(id){
+  delete states[activeState][id];delete runtime[id];
+  if(hiddenMats[activeState]) delete hiddenMats[activeState][id];
+  matOrders[activeState]=matOrders[activeState].filter(function(x){return x!==id});
+  if(selectedId===id){var o=getOrder();selectedId=o.length?o[o.length-1]:null}
+  selectedSegIdx=null;renderAll();
+}
+function duplicateMaterial(){if(!selectedId||!getMats()[selectedId]) return;addMaterial(getMats()[selectedId])}
+function renameMaterialId(oldId,raw){
+  var newId=String(parseInt(raw));
+  if(!newId||isNaN(+newId)||newId===oldId){renderSidebar();return}
+  if(+newId<1||+newId>255){renderSidebar();return}
+  if(getMats()[newId]){alert(T('matExists'));renderSidebar();return}
+  states[activeState][newId]=states[activeState][oldId];delete states[activeState][oldId];
+  runtime[newId]=runtime[oldId];delete runtime[oldId];
+  var p=matOrders[activeState].indexOf(oldId);if(p!==-1) matOrders[activeState][p]=newId;
+  if(selectedId===oldId) selectedId=newId;
+  renderAll();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  COLOR REFS
+// ═══════════════════════════════════════════════════════════
+function addColorRef(){
+  var name=prompt(T('color')+':','');if(!name) return;name=name.trim();
+  if(colorRefs[name]){alert(T('alreadyExists'));return}
+  colorRefs[name]={red:200,green:200,blue:200,alpha:200};
+  selColorRef=name;renderColorModal();_propsRenderedFor=null;renderAll();
+}
+function deleteColorRef(name){
+  if(!confirm(T('confirmDelete')+' "'+name+'"?')) return;
+  delete colorRefs[name];if(selColorRef===name) selColorRef=null;
+  renderColorModal();renderAll();
+}
+function updateColorRef(name,ch,val){
+  if(!colorRefs[name]) return;
+  var n=parseInt(val);
+  if(isNaN(n)) return; // leave empty while typing; onchange will fill 0
+  var clamped=Math.max(0,Math.min(255,n));
+  colorRefs[name][ch]=clamped;
+  // If user typed an out-of-range value, correct it in the input immediately
+  if(clamped!==n){
+    var ids={red:'cr-r',green:'cr-g',blue:'cr-b',alpha:'cr-a'};
+    var inp=document.getElementById(ids[ch]);
+    if(inp) inp.value=clamped;
+  }
+  _patchColorPreview(name);
+}
+function updateColorRefDone(name){
+  // Fill any empty RGBA inputs with 0
+  var ids={red:'cr-r',green:'cr-g',blue:'cr-b',alpha:'cr-a'};
+  for(var ch in ids){
+    var inp=document.getElementById(ids[ch]);
+    if(inp&&inp.value===''){
+      inp.value=0;
+      if(colorRefs[name]) colorRefs[name][ch]=0;
+    }
+  }
+  _patchColorPreview(name);
+  renderAll();
+}
+function pickColorRef(name,hex){
+  var rgb=hex2rgb(hex);
+  colorRefs[name].red=rgb.r;colorRefs[name].green=rgb.g;colorRefs[name].blue=rgb.b;
+  // update the number inputs manually so they reflect the picker
+  var c=colorRefs[name];
+  var rI=document.getElementById('cr-r'),gI=document.getElementById('cr-g'),bI=document.getElementById('cr-b');
+  if(rI) rI.value=c.red;if(gI) gI.value=c.green;if(bI) bI.value=c.blue;
+  _patchColorPreview(name);
+  renderAll();
+}
+function _patchColorPreview(name){
+  var c=colorRefs[name];if(!c) return;
+  var rgba='rgba('+c.red+','+c.green+','+c.blue+','+c.alpha/255+')';
+  // swatch in the list
+  var sw=document.getElementById('cr-sw-'+name);if(sw) sw.style.background=rgba;
+  // info text in the list
+  var info=document.getElementById('cr-info-'+name);
+  if(info) info.textContent='R:'+c.red+' G:'+c.green+' B:'+c.blue+' A:'+c.alpha;
+  // big preview rect in the editor panel
+  var prev=document.getElementById('cr-prev');if(prev) prev.style.background=rgba;
+  // sync the color picker hex
+  var picker=document.getElementById('cr-picker');if(picker) picker.value=rgb2hex(c.red,c.green,c.blue);
+}
+function renderColorModal(){
+  var body=document.getElementById('colorModalBody');var html='';
+  var names=Object.keys(colorRefs);
+  for(var i=0;i<names.length;i++){
+    var name=names[i],c=colorRefs[name],hex=rgb2hex(c.red,c.green,c.blue);
+    html+='<div class="ref-item'+(name===selColorRef?' sel':'')+'" onclick="if(selColorRef!==\''+name+'\'){selColorRef=\''+name+'\';renderColorModal()}">'
+      +'<div class="ref-sw" id="cr-sw-'+name+'" style="background:rgba('+c.red+','+c.green+','+c.blue+','+c.alpha/255+')"></div>'
+      +'<div class="ref-item-name">'+name+'</div>'
+      +'<div class="ref-item-info" id="cr-info-'+name+'">R:'+c.red+' G:'+c.green+' B:'+c.blue+' A:'+c.alpha+'</div>'
+      +'<button class="ref-item-del" onclick="event.stopPropagation();deleteColorRef(\''+name+'\')">✕</button></div>';
+  }
+  if(selColorRef&&colorRefs[selColorRef]){
+    var c=colorRefs[selColorRef],hex=rgb2hex(c.red,c.green,c.blue);
+    html+='<div class="ref-ed" onmousedown="event.stopPropagation()" onclick="event.stopPropagation()"><div class="ref-ed-title">'+T('editingColor')+' '+selColorRef+'</div>'
+      +'<div class="col-prev" id="cr-prev" style="background:rgba('+c.red+','+c.green+','+c.blue+','+c.alpha/255+')"></div>'
+      +'<div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">'
+      +'<input type="color" id="cr-picker" value="'+hex+'" style="width:36px;height:32px;border:1px solid var(--border2);background:var(--bg);border-radius:2px;cursor:pointer;padding:2px" oninput="pickColorRef(\''+selColorRef+'\',this.value)">'
+      +'<span style="font-size:9px;color:var(--text3)">'+T('quickPicker')+'</span></div>'
+      +'<div class="rgba4">'
+      +'<div class="rgba4-f"><label>RED</label><input id="cr-r" type="number" min="0" max="255" value="'+c.red+'" oninput="updateColorRef(\''+selColorRef+'\',\'red\',this.value)" onchange="updateColorRefDone(\''+selColorRef+'\')"></div>'
+      +'<div class="rgba4-f"><label>GREEN</label><input id="cr-g" type="number" min="0" max="255" value="'+c.green+'" oninput="updateColorRef(\''+selColorRef+'\',\'green\',this.value)" onchange="updateColorRefDone(\''+selColorRef+'\')"></div>'
+      +'<div class="rgba4-f"><label>BLUE</label><input id="cr-b" type="number" min="0" max="255" value="'+c.blue+'" oninput="updateColorRef(\''+selColorRef+'\',\'blue\',this.value)" onchange="updateColorRefDone(\''+selColorRef+'\')"></div>'
+      +'<div class="rgba4-f"><label>ALPHA</label><input id="cr-a" type="number" min="0" max="255" value="'+c.alpha+'" oninput="updateColorRef(\''+selColorRef+'\',\'alpha\',this.value)" onchange="updateColorRefDone(\''+selColorRef+'\')"></div>'
+      +'</div></div>';
+  }
+  if(!names.length) html='<div class="no-sel" style="height:60px">'+T('noColor')+'</div>';
+  body.innerHTML=html;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  PROP REFS
+// ═══════════════════════════════════════════════════════════
+function addPropRef(){
+  var name=prompt(T('reference')+':','');if(!name) return;name=name.trim();
+  if(propRefs[name]){alert(T('alreadyExists'));return}
+  propRefs[name]={size:0.3};selPropRef=name;renderPropRefModal();_propsRenderedFor=null;renderAll();
+}
+function deletePropRef(name){
+  if(!confirm(T('confirmDelete')+' "'+name+'"?')) return;
+  delete propRefs[name];if(selPropRef===name) selPropRef=null;
+  renderPropRefModal();renderAll();
+}
+function addPropField(refName){
+  var key=prompt(T('addField')+':','');if(!key) return;
+  propRefs[refName][key.trim()]=0;renderPropRefModal();renderAll();
+}
+function updatePropField(refName,key,val){
+  if(!propRefs[refName]) return;
+  var n=parseFloat(val);propRefs[refName][key]=isNaN(n)?val:n;
+  // Only update the summary line of this ref item — don't rebuild the whole modal
+  var sumEl=document.getElementById('pf-summary-'+refName);
+  if(sumEl){
+    var fields=propRefs[refName];
+    sumEl.textContent=Object.entries(fields).map(function(e){return e[0]+': '+e[1]}).join(' · ')||T('noRef');
+  }
+  renderAll(); // keep JSON preview & props in sync
+}
+function deletePropField(refName,key){delete propRefs[refName][key];renderPropRefModal();renderAll()}
+function renamePropField(refName,oldKey,newKey){
+  newKey=(newKey||'').trim();if(!newKey||newKey===oldKey) return;
+  var val=propRefs[refName][oldKey];delete propRefs[refName][oldKey];propRefs[refName][newKey]=val;
+  renderPropRefModal();renderAll();
+}
+function renderPropRefModal(){
+  var body=document.getElementById('propRefModalBody');var html='';
+  var names=Object.keys(propRefs);
+  for(var i=0;i<names.length;i++){
+    var name=names[i],fields=propRefs[name];
+    var summary=Object.entries(fields).map(function(e){return e[0]+': '+e[1]}).join(' · ')||T('noRef');
+    html+='<div class="ref-item'+(name===selPropRef?' sel':'')+'" onclick="if(selPropRef!==\''+name+'\'){selPropRef=\''+name+'\';renderPropRefModal()}">'
+      +'<div class="ref-item-name">'+name+'</div>'
+      +'<div class="ref-item-info" id="pf-summary-'+name+'">'+summary+'</div>'
+      +'<button class="ref-item-del" onclick="event.stopPropagation();deletePropRef(\''+name+'\')">✕</button></div>';
+  }
+  if(selPropRef&&propRefs[selPropRef]){
+    var fields=propRefs[selPropRef];var rows='';
+    var keys=Object.keys(fields);
+    for(var j=0;j<keys.length;j++){
+      var k=keys[j],v=fields[k];
+      rows+='<div class="pf-row">'
+        +'<input class="pf-key" type="text" value="'+k+'" onblur="renamePropField(\''+selPropRef+'\',\''+k+'\',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()">'
+        +'<input class="pf-val" type="text" value="'+v+'" onchange="updatePropField(\''+selPropRef+'\',\''+k+'\',this.value)">'
+        +'<button class="pf-del" onclick="deletePropField(\''+selPropRef+'\',\''+k+'\')">✕</button></div>';
+    }
+    html+='<div class="ref-ed" onmousedown="event.stopPropagation()" onclick="event.stopPropagation()"><div class="ref-ed-title">'+T('editingRef')+' '+selPropRef+'</div>'
+      +'<div style="margin-bottom:8px">'+rows+'</div>'
+      +'<button class="h-btn" style="width:100%" onclick="addPropField(\''+selPropRef+'\')">'+T('addField')+'</button></div>';
+  }
+  if(!names.length) html='<div class="no-sel" style="height:60px">'+T('noRefs')+'</div>';
+  body.innerHTML=html;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  MODALS
+// ═══════════════════════════════════════════════════════════
+function openModal(id){
+  document.getElementById(id).classList.remove('hidden');
+  if(id==='colorModal') renderColorModal();
+  if(id==='propRefModal') renderPropRefModal();
+  document.getElementById(id).onclick=function(e){if(e.target===document.getElementById(id)) closeModal(id)};
+}
+function closeModal(id){document.getElementById(id).classList.add('hidden')}
+
+// ═══════════════════════════════════════════════════════════
+//  IMPORT / EXPORT MENUS
+// ═══════════════════════════════════════════════════════════
+function showImportMenu(btn){
+  showDropMenu(btn,[
+    {label:T('importJson'), fn:function(){importFile('.json')}},
+    {label:T('importJsonc'), fn:function(){importFile('.jsonc')}}
+  ]);
+}
+function showExportMenu(btn){
+  showDropMenu(btn,[
+    {label:T('exportJson'), fn:exportJson},
+    {label:T('exportJsonc'), fn:exportJsonc}
+  ]);
+}
+var _dropAnchorBtn=null;
+function showDropMenu(btn,items){
+  var menu=document.getElementById('dropMenu');
+  // Toggle: clicking the same button while open → close
+  if(menu.style.display==='block'&&_dropAnchorBtn===btn){hideDropMenu();return;}
+  _dropAnchorBtn=btn;
+  menu.innerHTML='';
+  items.forEach(function(item){
+    var div=document.createElement('div');
+    div.style.cssText='padding:10px 16px;cursor:pointer;font-size:11px;color:var(--text);border-bottom:1px solid var(--border);white-space:nowrap';
+    div.textContent=item.label;
+    div.onmouseenter=function(){this.style.background='rgba(255,255,255,.05)'};
+    div.onmouseleave=function(){this.style.background=''};
+    div.onclick=function(){hideDropMenu();item.fn()};
+    menu.appendChild(div);
+  });
+  var r=btn.getBoundingClientRect();
+  menu.style.left=r.left+'px';menu.style.top=(r.bottom+4)+'px';menu.style.display='block';
+}
+function hideDropMenu(){
+  document.getElementById('dropMenu').style.display='none';
+  _dropAnchorBtn=null;
+}
+// Close dropdown when clicking outside it (persistent handler — no more once/setTimeout issues)
+document.addEventListener('mousedown',function(e){
+  var menu=document.getElementById('dropMenu');
+  if(menu&&menu.style.display==='block'&&!menu.contains(e.target)&&e.target!==_dropAnchorBtn){
+    hideDropMenu();
+  }
+});
+
+function importFile(ext){
+  var inp=document.createElement('input');inp.type='file';inp.accept=ext;
+  inp.onchange=function(e){
+    var file=e.target.files[0];if(!file) return;
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      try{
+        var data=parseJsonc(ev.target.result);
+        jsoncContext=null;
+        // If .jsonc / has sirens block
+        if(data.sirens){
+          jsoncContext={};
+          for(var k in data){if(k!=='sirens') jsoncContext[k]=data[k];}
+          loadSirens(data.sirens);
+        } else if(data.states){
+          loadSirens(data);
+        } else {
+          // flat fallback
+          loadSirens({references:{colors:{}},states:{Importado:data}});
+        }
+        selectedId=null;selectedSegIdx=null;_propsRenderedFor=null;rebuildRT();renderAll();
+      }catch(err){alert(T('invalidJson')+' '+err.message)}
+    };reader.readAsText(file);
+  };inp.click();
+}
+
+function exportJson(){
+  var obj={references:{colors:{}},states:{}};
+  var sirens=buildSirensObj();
+  obj.references=sirens.references;obj.states=sirens.states;
+  download(JSON.stringify(obj,null,4),'avs_lights.json','application/json');
+}
+
+function exportJsonc(){
+  var sirens=buildSirensObj();
+  var full;
+  if(jsoncContext){
+    // Reconstruct the original file with updated sirens
+    full=Object.assign({},jsoncContext,{sirens:sirens});
+  } else {
+    // Build minimal jsonc structure
+    full={
+      metadata:{author:'AVS Editor',desc:'',creationtime:new Date().toISOString().slice(0,10),minver:20000},
+      sirens:sirens
+    };
+  }
+  download(JSON.stringify(full,null,4),'avs_lights.jsonc','application/json');
+}
+
+function download(content,filename,mime){
+  var a=document.createElement('a');
+  var url=URL.createObjectURL(new Blob([content],{type:mime}));
+  a.href=url;a.download=filename;a.click();
+  // Revoke after a tick to free memory
+  setTimeout(function(){URL.revokeObjectURL(url);},1000);
+  // The download dialog can steal page focus and kill the rAF loop.
+  // Re-schedule it after a short delay so animation resumes.
+  if(playing){
+    setTimeout(function(){if(!_ticking){_ticking=true;requestAnimationFrame(tick);}},200);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  SIDEBAR
+// ═══════════════════════════════════════════════════════════
+function renderSidebar(){
+  if(previewMode==='ld'){ renderLDSidebar(); return; }
+  var list=document.getElementById('matList');
+  var order=getOrder();
+  document.getElementById('matCount').textContent=order.length+'/255';
+  updateShowAllBtn();
+  list.innerHTML='';
+  for(var i=0;i<order.length;i++){
+    var id=order[i],m=getMats()[id];
+    var c=getColor(m.color),hex=rgb2hex(c.red,c.green,c.blue),r=runtime[id];
+    var hidden=isHidden(id);
+    var div=document.createElement('div');
+    div.className='mat-item'+(id===selectedId?' sel':'')+(hidden?' mat-hidden':'');
+    div.innerHTML=
+      '<div class="mat-sw" style="background:'+hex+';box-shadow:0 0 5px '+hex+'55"></div>'
+      +'<input class="mat-id-inp" type="number" min="1" max="255" value="'+id+'" onclick="event.stopPropagation()" onchange="renameMaterialId(\''+id+'\',this.value)">'
+      +'<div class="mat-label">'+matLabel(m)+'</div>'
+      +(hidden?'<div class="hidden-badge">HIDDEN</div>':'<div class="mat-pill" id="pill_'+id+'" style="opacity:'+(r&&r.state?'1':'.15')+'"></div>')
+      +'<button class="mat-eye'+(hidden?' hidden-eye':'')+'" title="'+(hidden?T('show'):T('hide'))+'" onclick="toggleHidden(\''+id+'\',event)">'+(hidden?'🙈':'👁')+'</button>'
+      +'<button class="mat-del" onclick="event.stopPropagation();deleteMaterial(\''+id+'\')">✕</button>';
+    div.onclick=(function(sid){return function(){selectedId=sid;selectedSegIdx=null;renderAll()}})(id);
+    list.appendChild(div);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  STATE TABS
+// ═══════════════════════════════════════════════════════════
+function renderTabs(){
+  var tabs=document.getElementById('stateTabs');tabs.innerHTML='';
+  for(var i=0;i<stateOrder.length;i++){
+    var name=stateOrder[i];
+    var btn=document.createElement('div');btn.className='stab'+(name===activeState?' active':'');
+    var inp=document.createElement('input');inp.className='stab-name';inp.value=name;inp.readOnly=true;inp.size=Math.max(4,name.length);
+    inp.ondblclick=(function(el){return function(e){e.stopPropagation();el.readOnly=false;el.select()}})(inp);
+    inp.onblur=(function(el,n){return function(){el.readOnly=true;renameState(n,el.value)}})(inp,name);
+    inp.onkeydown=function(e){if(e.key==='Enter') this.blur();if(e.key==='Escape'){this.value=this.defaultValue;this.blur()}};
+    inp.onclick=function(e){if(!this.readOnly) e.stopPropagation()};
+    var del=document.createElement('span');del.className='stab-del';del.textContent='×';
+    del.onclick=(function(n){return function(e){e.stopPropagation();deleteState(n)}})(name);
+    btn.appendChild(inp);btn.appendChild(del);
+    btn.onclick=(function(n){return function(){switchState(n)}})(name);
+    tabs.appendChild(btn);
+  }
+  var lbl=document.getElementById('prevLbl');
+  if(lbl) lbl.textContent='▶ Preview — '+(activeState||'');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  GRID
+// ═══════════════════════════════════════════════════════════
+function updateHiddenBanner(){
+  var banner=document.getElementById('hiddenWarnBanner');if(!banner) return;
+  var n=countHidden();
+  if(!n){banner.style.display='none';banner.innerHTML='';return;}
+  banner.style.display='flex';
+  banner.className='hidden-warn';
+  banner.innerHTML='<span class="hidden-warn-icon">⚠️</span>'
+    +'<span>'+n+' '+T('hiddenWarn')+'</span>'
+    +'<button class="show-all-btn" style="margin-left:auto" onclick="showAllMaterials()">👁 '+T('showAll')+'</button>';
+}
+
+// Returns the currently active color name for a material (respects colors sequence)
+function getRuntimeColor(m,id){
+  if(m.colors&&m.colors.length){
+    var r=runtime[id];
+    var seq=_buildColorSeq(m,r?r.total:0);
+    if(!seq||!seq.length) return m.color;
+    var ci=r?(r.colorIdx||0):0;
+    if(ci>=seq.length) ci=0; // clamp after entry deletion
+    return seq[ci].color;
+  }
+  return m.color;
+}
+
+function renderGrid(){
+  var grid=document.getElementById('gridPreview');
+  var zoom=+document.getElementById('zoomSlider').value;
+  var order=getOrder(),mats=getMats();
+  grid.innerHTML='';
+
+  for(var i=0;i<order.length;i++){
+    var id=order[i],m=mats[id],r=runtime[id];
+    if(isHidden(id)) continue;
+    var rot=isRotator(m);
+    var activeColor=getRuntimeColor(m,id);
+    var c=getColor(activeColor),lit=r&&r.state;
+    var div=document.createElement('div');div.style.width=zoom+'px';div.style.height=zoom+'px';
+    div.className='pcell'+(id===selectedId?' sel-c':'');
+    div.id='pcell_'+id;
+    div.onclick=(function(sid){return function(){selectedId=sid;selectedSegIdx=null;renderAll()}})(id);
+
+    if(rot){
+      // Canvas-based rotator preview: pie-slice that sweeps with rotation angle
+      var cvs=document.createElement('canvas');
+      cvs.width=zoom;cvs.height=zoom;
+      cvs.style.cssText='position:absolute;inset:0;border-radius:3px';
+      div.style.position='relative';
+      div.style.background='#181c20';
+      _drawRotatorSlice(cvs,zoom,c,r?r.angle:0,m.rotator);
+      var numColor='rgba(255,255,255,.6)';
+      div.innerHTML='<div class="cnum" style="color:'+numColor+';position:relative;z-index:2">'+id+'</div>';
+      div.insertBefore(cvs,div.firstChild);
+    } else {
+      if(lit){div.style.background='rgba('+c.red+','+c.green+','+c.blue+','+c.alpha/255+')';div.style.boxShadow='0 0 10px rgba('+c.red+','+c.green+','+c.blue+',.6)'}
+      var ms=(m.pattern&&m.pattern.length&&r)?m.pattern[r.count%m.pattern.length]:'';
+      var numColor=lit?'rgba(0,0,0,.7)':'rgba(255,255,255,.45)';
+      div.innerHTML='<div class="cnum" style="color:'+numColor+'">'+id+'</div><div class="cms">'+(ms?ms+'ms':'')+'</div>';
+    }
+    // In LD mode: make cell draggable onto the canvas
+    if(previewMode==='ld') _ldMakeDraggable(div,id);
+    grid.appendChild(div);
+  }
+  if(previewMode==='ld'){
+    grid.title=T('ldDragTitle');
+  } else {
+    grid.title='';
+  }
+}
+
+function _drawRotatorSlice(cvs,size,c,angleDeg,rt){
+  var ctx=cvs.getContext('2d');
+  var W=size,H=size,cx=W/2,cy=H/2;
+  ctx.clearRect(0,0,W,H);
+
+  // White/light gray background (entire square)
+  ctx.fillStyle='#1a1e22';
+  ctx.fillRect(0,0,W,H);
+
+  // Draw a ~90° filled pie wedge from center
+  var radius=Math.sqrt(cx*cx+cy*cy)+2; // extend beyond corners
+  var sweepAng=90*Math.PI/180; // 90° wide slice
+  var midRad=(angleDeg-90)*Math.PI/180; // 0°=up, convert to canvas coords
+  var startRad=midRad-sweepAng/2;
+  var endRad=midRad+sweepAng/2;
+
+  // Filled wedge
+  ctx.fillStyle='rgba('+c.red+','+c.green+','+c.blue+','+(c.alpha/255)+')';
+  ctx.beginPath();
+  ctx.moveTo(cx,cy);
+  ctx.arc(cx,cy,radius,startRad,endRad);
+  ctx.closePath();
+  ctx.fill();
+
+  // Thin bright line on leading edge
+  var ex=cx+radius*Math.cos(midRad);
+  var ey=cy+radius*Math.sin(midRad);
+  ctx.strokeStyle='rgba(255,255,255,0.7)';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(ex,ey);ctx.stroke();
+}
+// ═══════════════════════════════════════════════════════════
+function renderTimeline(){
+  var body=document.getElementById('tlBody');var order=getOrder(),mats=getMats();
+  body.innerHTML='';var MAX=Math.min(body.clientWidth-90,480);
+  for(var i=0;i<order.length;i++){
+    var id=order[i],m=mats[id];
+    var c=getColor(m.color),hex=rgb2hex(c.red,c.green,c.blue);
+    var row=document.createElement('div');row.className='tl-row'+(id===selectedId?' tl-sel':'')+(isHidden(id)?' tl-hidden':'');
+    var idEl=document.createElement('div');idEl.className='tl-row-id';idEl.textContent=id;
+    var sw=document.createElement('div');sw.className='tl-sw';sw.style.background=hex;
+    var cells=document.createElement('div');cells.className='tl-cells';
+    if(isRotator(m)){
+      var rt=m.rotator,speed=rt.speed||rt.time||1000;
+      var bar=document.createElement('div');bar.className='tl-rot-bar';
+      bar.textContent='↻ '+rt.direction+' · '+speed+'ms · '+(rt.radius||360)+'°';
+      cells.appendChild(bar);
+    } else {
+      var total=0;if(m.pattern) for(var j=0;j<m.pattern.length;j++) total+=m.pattern[j];if(!total) total=1;
+      var st=m.state;
+      if(m.pattern) for(var k=0;k<m.pattern.length;k++){
+        var ms=m.pattern[k],cell=document.createElement('div');
+        var w=Math.max(5,Math.round((ms/total)*MAX));
+        cell.className='tl-cell'+(st?' on':'')+(id===selectedId&&k===selectedSegIdx?' tl-sel':'');
+        cell.style.width=w+'px';
+        if(st){cell.style.background='rgba('+c.red+','+c.green+','+c.blue+',.7)';cell.style.boxShadow='0 0 5px rgba('+c.red+','+c.green+','+c.blue+',.5)'}
+        else cell.style.background='rgba(255,255,255,.04)';
+        cell.title=(st?'ON':'OFF')+' — '+ms+'ms';
+        cell.onclick=(function(sid,kidx){return function(){selectedId=sid;selectedSegIdx=kidx;renderAll()}})(id,k);
+        cells.appendChild(cell);st=!st;
+      }
+      var addBtn=document.createElement('div');addBtn.className='tl-add';addBtn.textContent='+';
+      addBtn.onclick=(function(sid){return function(e){
+        e.stopPropagation();var d=+document.getElementById('defaultMs').value||500;
+        mats[sid].pattern.push(d);rebuildRTTotal(sid);
+        selectedId=sid;selectedSegIdx=mats[sid].pattern.length-1;renderAll();
+      }})(id);
+      cells.appendChild(addBtn);
+    }
+    var tot=document.createElement('div');tot.className='tl-tot';
+    if(!isRotator(m)&&m.pattern){var tsum=0;for(var q=0;q<m.pattern.length;q++) tsum+=m.pattern[q];tot.textContent=tsum+'ms';}
+    row.append(idEl,sw,cells,tot);body.appendChild(row);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  PROPS
+// ═══════════════════════════════════════════════════════════
+function renderProps(){
+  var m=getMats()[selectedId];
+  var body=document.getElementById('propsBody');
+  if(!activeState||!selectedId||!m){
+    body.innerHTML='<div class="no-sel">'+T('selectMat')+'</div>';_propsRenderedFor=null;return;
+  }
+  if(_propsRenderedFor!==selectedId){_propsRenderedFor=selectedId;buildPropsHTML(body,m);}
+  else patchProps(body,m);
+}
+
+function buildPropsHTML(body,m){
+  var c=getColor(m.color);
+  var colorNames=Object.keys(colorRefs);
+  var propRefNames=Object.keys(propRefs);
+  var useRef=!!m.reference;
+  var rot=isRotator(m);
+
+  var cOpts=colorNames.map(function(n){return '<option value="'+n+'"'+(n===m.color?' selected':'')+'>'+n+'</option>'}).join('');
+  if(colorNames.indexOf(m.color)===-1) cOpts+='<option value="'+m.color+'" selected>'+m.color+' ⚠️</option>';
+
+  var sizeHtml='';
+  if(useRef){
+    var rOpts=propRefNames.map(function(n){return '<option value="'+n+'"'+(n===m.reference?' selected':'')+'>'+n+'</option>'}).join('');
+    if(propRefNames.indexOf(m.reference)===-1) rOpts+='<option value="'+m.reference+'" selected>'+m.reference+' ⚠️</option>';
+    var rfSum=Object.entries(propRefs[m.reference]||{}).map(function(e){return e[0]+': '+e[1]}).join(' · ')||T('noRef');
+    sizeHtml='<select class="ps" onchange="setField(\'reference\',this.value)">'+rOpts+'</select>'
+      +'<div style="margin-top:5px;font-size:9px;color:var(--text3)">'+rfSum+' &nbsp;·&nbsp; <span style="cursor:pointer;color:var(--amber)" onclick="openModal(\'propRefModal\')">'+T('editRefs')+'</span></div>';
+  } else {
+    // Collect extra custom fields (not size/inertia/built-ins)
+    var builtins={color:1,state:1,pattern:1,reference:1,size:1,inertia:1,type:1,shadow:1,rotator:1,colors:1,diffuse:1,_savedPattern:1};
+    var customFields=Object.keys(m).filter(function(k){return !builtins[k]});
+    var customHtml='';
+    for(var ci=0;ci<customFields.length;ci++){
+      var ck=customFields[ci];
+      customHtml+='<div class="row2" style="align-items:center;margin-top:4px">'
+        +'<div style="flex:1"><label class="pl" style="font-size:9px;color:var(--text3)">'+ck+'</label>'
+        +'<input class="pi" type="number" step="any" value="'+m[ck]+'" onchange="setCustomField(\''+ck+'\',this.value)"></div>'
+        +'<button class="del-seg" style="margin-top:14px" onclick="delCustomField(\''+ck+'\')" title="Remover">✕</button>'
+        +'</div>';
+    }
+    sizeHtml='<div class="row2">'
+      +'<div><label class="pl">Size</label><input class="pi" id="inp_size" type="number" min="0.01" max="10" step="0.05" value="'+(m.size||0.3)+'" onchange="setField(\'size\',+this.value)"></div>'
+      +'<div><label class="pl">Inertia</label><input class="pi" id="inp_inertia" type="number" min="0" max="1" step="0.05" value="'+(m.inertia!=null?m.inertia:'')+'" placeholder="—" onchange="setField(\'inertia\',this.value===\'\'?null:+this.value)"></div>'
+      +'</div>'
+      +customHtml
+      +'<button class="h-btn" style="margin-top:6px;font-size:10px" onclick="addCustomField()">+ Parâmetro</button>';
+  }
+
+  var hasShadow=!!m.shadow;
+  var shadowHtml=hasShadow?
+    '<div class="sh-grid">'
+    +'<div class="sh-f"><label>OFFSET</label><input id="sh_offset" type="number" step="0.1" value="'+(m.shadow.offset||0)+'" onchange="setShadow(\'offset\',+this.value)"></div>'
+    +'<div class="sh-f"><label>SIZE</label><input id="sh_size" type="number" step="0.1" value="'+(m.shadow.size||1)+'" onchange="setShadow(\'size\',+this.value)"></div>'
+    +'</div>'
+    +'<div class="sh-f" style="margin-top:5px"><label>'+T('texture')+'</label>'
+    +'<input id="sh_type" type="text" value="'+(m.shadow.type||'comet')+'" placeholder="comet" onchange="setShadow(\'type\',this.value)"></div>'
+    :'';
+
+  var hasRot=!!m.rotator;
+  var rotHtml='';
+  if(hasRot){
+    var rt=m.rotator;
+    var dirs=['clockwise','counter-clockwise','switch'];
+    var dirBtns=dirs.map(function(d){return '<button class="rot-dir-opt'+(rt.direction===d?' active':'')+'" onclick="setRotator(\'direction\',\''+d+'\');renderAll()">'+d+'</button>'}).join('');
+    rotHtml='<div class="rot-dir">'+dirBtns+'</div><div class="rot-grid">'
+      +'<div class="rot-f"><label>'+T('speed')+'</label><input id="rot_speed" type="number" min="50" max="99999" value="'+(rt.speed||rt.time||1000)+'" onchange="setRotator(\'speed\',+this.value)"></div>'
+      +'<div class="rot-f"><label>'+T('radius')+'</label><input id="rot_radius" type="number" min="1" max="3600" step="1" value="'+(rt.radius||360)+'" onchange="setRotator(\'radius\',+this.value)"></div>'
+      +'<div class="rot-f"><label>'+T('offset')+'</label><input id="rot_offset" type="number" step="0.5" value="'+(rt.offset||0)+'" onchange="setRotator(\'offset\',+this.value)"></div>'
+      +'<div class="rot-f"><label>'+T('type')+'</label><select id="rot_type" onchange="setRotator(\'type\',this.value)">'
+      +'<option value="linear"'+(rt.type==='linear'?' selected':'')+'>linear</option></select></div>'
+      +'</div>';
+  }
+
+  var segSelHtml='';
+  if(!rot&&selectedSegIdx!==null&&m.pattern&&m.pattern[selectedSegIdx]!==undefined){
+    var sst=getSegState(m,selectedSegIdx);
+    segSelHtml='<div class="pg"><label class="pl">'+T('segment')+' #'+(selectedSegIdx+1)+'</label>'
+      +'<div style="font-size:10px;color:var(--text2)">'+T('initialState')+': <span style="color:'+(sst?'var(--green)':'var(--red)')+'"> '+(sst?'ON':'OFF')+'</span> · '+m.pattern[selectedSegIdx]+'ms</div></div>';
+  }
+
+  var bottomHtml='';
+  if(rot){
+    bottomHtml='<div class="pg"><label class="pl">'+T('timeMs')+'</label>'
+      +'<input class="pi" id="rot_time2" type="number" min="50" max="99999" value="'+(m.rotator.speed||m.rotator.time||1000)+'" onchange="setRotator(\'speed\',+this.value)">'
+      +'<div style="margin-top:5px;font-size:9px;color:var(--text3)">'+T('timeDesc')+' '+(m.rotator.radius||360)+'°</div></div>';
+  } else {
+    var segList='';
+    if(m.pattern) for(var i=0;i<m.pattern.length;i++){
+      var sst=getSegState(m,i);
+      segList+='<div class="seg-row">'
+        +'<span class="seg-badge '+(sst?'on':'off')+'">'+(sst?'ON':'OFF')+'</span>'
+        +'<span class="seg-ms">'+m.pattern[i]+'ms</span>'
+        +'<input class="seg-inp" type="number" min="0" max="99999" value="'+m.pattern[i]+'" onchange="setSegMs('+i+',+this.value)">'
+        +'<button class="seg-del" onclick="deleteSeg('+i+')">✕</button></div>';
+    }
+    bottomHtml='<div class="pg"><label class="pl">'+T('pattern')+' ['+(m.pattern?m.pattern.length:0)+' '+T('segs')+']</label>'
+      +'<div class="seg-ed"><div class="seg-list" id="segList">'+segList+'</div>'
+      +'<div class="seg-add-row">'
+      +'<button class="h-btn" style="flex:1" onclick="addSeg()">'+T('addSegment')+'</button>'
+      +'<button class="h-btn" onclick="clearPattern()">'+T('clear')+'</button>'
+      +'</div></div></div>';
+  }
+
+  body.innerHTML=
+    '<div class="pg"><label class="pl">'+T('color')+'</label>'
+    +'<div class="color-row">'
+    +'<div class="color-sw" id="colorSwatch" style="background:rgba('+c.red+','+c.green+','+c.blue+','+c.alpha/255+');box-shadow:0 0 8px rgba('+c.red+','+c.green+','+c.blue+',.5)"></div>'
+    +'<select class="ps" style="flex:1" onchange="setField(\'color\',this.value)">'+cOpts+'</select></div>'
+    +'<div id="colorInfo" style="margin-top:5px;font-size:9px;color:var(--text3)">R:'+c.red+' G:'+c.green+' B:'+c.blue+' A:'+c.alpha
+    +' &nbsp;·&nbsp; <span style="cursor:pointer;color:var(--amber)" onclick="openModal(\'colorModal\')">'+T('editColors')+'</span></div></div>'
+
+    +'<div class="pg"><label class="pl">'+T('initialState')+'</label>'
+    +'<div class="stog">'
+    +'<button class="sopt '+(m.state===1?'on-a':'')+'" onclick="setField(\'state\',1)">ON (1)</button>'
+    +'<button class="sopt '+(m.state===0?'off-a':'')+'" onclick="setField(\'state\',0)">OFF (0)</button>'
+    +'</div></div>'
+
+    +'<div class="pg"><label class="pl">'+T('sizeInertia')+'</label>'
+    +'<div class="ref-mode">'
+    +'<button class="ref-mode-opt'+(useRef?'':' active')+'" onclick="setRefMode(false)">'+T('manual')+'</button>'
+    +'<button class="ref-mode-opt'+(useRef?' active':'')+'" onclick="setRefMode(true)">'+T('reference')+'</button>'
+    +'</div>'+sizeHtml+'</div>'
+
+    +'<div class="pg"><label class="pl" style="display:flex;align-items:center">'+T('shadow')
+    +'<label class="chk-lbl"><input type="checkbox" '+(hasShadow?'checked':'')+' onchange="toggleShadow(this.checked)"> '+T('activate')+'</label></label>'
+    +shadowHtml+'</div>'
+
+    +_buildColorsHtml(m)
+
+    +'<div class="pg"><label class="pl" style="display:flex;align-items:center">'+T('rotator')
+    +'<label class="chk-lbl"><input type="checkbox" '+(hasRot?'checked':'')+' onchange="toggleRotator(this.checked)"> '+T('activate')+'</label></label>'
+    +rotHtml+'</div>'
+
+    +'<div class="divider"></div>'
+    +segSelHtml
+    +bottomHtml
+
+    +'<div class="divider"></div>'
+    +'<div class="pg"><label class="pl">'+T('jsonMat')+'</label>'
+    +'<div class="json-box" id="jsonBox">'+buildSingleJson(selectedId)+'</div></div>';
+}
+
+function patchProps(body,m){
+  var c=getColor(m.color);
+  var sw=document.getElementById('colorSwatch');
+  var ci=document.getElementById('colorInfo');
+  if(sw) sw.style.background='rgba('+c.red+','+c.green+','+c.blue+','+c.alpha/255+')';
+  if(ci) ci.innerHTML='R:'+c.red+' G:'+c.green+' B:'+c.blue+' A:'+c.alpha
+    +' &nbsp;·&nbsp; <span style="cursor:pointer;color:var(--amber)" onclick="openModal(\'colorModal\')">'+T('editColors')+'</span>';
+  var jb=document.getElementById('jsonBox');if(jb) jb.textContent=buildSingleJson(selectedId);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  FIELD SETTERS
+// ═══════════════════════════════════════════════════════════
+function setField(key,val){
+  var m=getMats()[selectedId];if(!m) return;
+  if(val===null) delete m[key]; else m[key]=val;
+  if(key==='state'&&runtime[selectedId]) runtime[selectedId].state=val;
+  _propsRenderedFor=null;renderAll();
+}
+function setRefMode(useRef){
+  var m=getMats()[selectedId];if(!m) return;
+  if(useRef){var first=Object.keys(propRefs)[0];if(!first){alert(T('noRefs'));return}m.reference=first;delete m.size;delete m.inertia;}
+  else{delete m.reference;m.size=0.3;}
+  _propsRenderedFor=null;renderAll();
+}
+function setShadow(key,val){
+  var m=getMats()[selectedId];if(!m||!m.shadow) return;
+  m.shadow[key]=val;var jb=document.getElementById('jsonBox');if(jb) jb.textContent=buildSingleJson(selectedId);
+}
+function setRotator(key,val){
+  var m=getMats()[selectedId];if(!m||!m.rotator) return;
+  m.rotator[key]=val;
+  if(key==='direction'){
+    // Direction changes the active button state — need full props rebuild
+    _propsRenderedFor=null;renderAll();
+  } else {
+    var jb=document.getElementById('jsonBox');if(jb) jb.textContent=buildSingleJson(selectedId);
+  }
+}
+function toggleShadow(on){
+  var m=getMats()[selectedId];if(!m) return;
+  if(on) m.shadow={offset:0.1,size:1.0,type:'comet'};else delete m.shadow;
+  _propsRenderedFor=null;renderAll();
+}
+function toggleRotator(on){
+  var m=getMats()[selectedId];if(!m) return;
+  if(on){
+    // Save current pattern before switching to rotator mode
+    m._savedPattern=m.pattern?m.pattern.slice():[];
+    m.rotator={speed:1000};  // minimal — direction/type come from reference
+    m.pattern=[];
+  } else {
+    delete m.rotator;
+    // Restore saved pattern, or use a default if nothing was saved
+    m.pattern=m._savedPattern&&m._savedPattern.length?m._savedPattern.slice():[500,500];
+    delete m._savedPattern;
+  }
+  _propsRenderedFor=null;renderAll();
+}
+function setSegMs(idx,val){
+  var m=getMats()[selectedId];if(!m||!m.pattern) return;
+  m.pattern[idx]=val;rebuildRTTotal(selectedId);
+  // If material has colors, rebuild props so duration descriptions update
+  if(m.colors&&m.colors.length){_propsRenderedFor=null;renderAll();return;}
+  var jb=document.getElementById('jsonBox');if(jb) jb.textContent=buildSingleJson(selectedId);
+}
+function deleteSeg(idx){
+  var m=getMats()[selectedId];if(!m||!m.pattern) return;
+  m.pattern.splice(idx,1);rebuildRTTotal(selectedId);
+  if(selectedSegIdx>=m.pattern.length) selectedSegIdx=null;
+  _propsRenderedFor=null;renderAll();
+}
+function addSeg(){
+  var m=getMats()[selectedId];if(!m||!m.pattern) return;
+  m.pattern.push(+document.getElementById('defaultMs').value||500);
+  rebuildRTTotal(selectedId);selectedSegIdx=m.pattern.length-1;_propsRenderedFor=null;renderAll();
+}
+function clearPattern(){
+  var m=getMats()[selectedId];if(!m) return;
+  m.pattern=[];rebuildRTTotal(selectedId);selectedSegIdx=null;_propsRenderedFor=null;renderAll();
+}
+
+// ─── Colors sequence UI ──────────────────────────────────────
+function _buildColorsHtml(m){
+  var hasColors=!!(m.colors&&m.colors.length);
+  var colorNames=Object.keys(colorRefs);
+  var inner='';
+  if(hasColors){
+    // Main color duration = colors[0][0] (how long it shows before first switch)
+    var mainMs=m.colors[0][0];
+    var patTotal=0;
+    if(isRotator(m)){
+      patTotal=m.rotator?(m.rotator.speed||m.rotator.time||1000):1000;
+    } else {
+      if(m.pattern) for(var i=0;i<m.pattern.length;i++) patTotal+=m.pattern[i];
+    }
+    var timingLabel=isRotator(m)?'velocidade do rotator':'total do pattern';
+    var mc=getColor(m.color);
+    var msw='rgba('+mc.red+','+mc.green+','+mc.blue+','+mc.alpha/255+')';
+    inner+='<div class="colors-list" id="colorSeqList">';
+    // Main color row (auto-duration, not editable directly)
+    inner+='<div class="color-seq-row" style="border-color:rgba(255,255,255,.08)">'
+      +'<span style="font-size:9px;color:var(--cyan);width:16px;text-align:right">①</span>'
+      +'<span class="color-seq-ms" style="display:inline-flex;align-items:center;justify-content:center;color:var(--text3);background:transparent;border-style:dashed">'+mainMs+'</span>'
+      +'<span style="font-size:9px;color:var(--text3)">ms</span>'
+      +'<div class="color-seq-sw" style="background:'+msw+'"></div>'
+      +'<span style="font-size:10px;color:var(--text2);flex:1;padding:0 4px">'+m.color+' <span style="color:var(--text3);font-size:9px">(cor principal — auto)</span></span>'
+      +'</div>';
+    // Extra color rows
+    for(var i=0;i<m.colors.length;i++){
+      var entry=m.colors[i];
+      var cName=entry[1];
+      var cc=getColor(cName);
+      var sw='rgba('+cc.red+','+cc.green+','+cc.blue+','+cc.alpha/255+')';
+      var opts=colorNames.map(function(n){return '<option value="'+n+'"'+(n===cName?' selected':'')+'>'+n+'</option>'}).join('');
+      inner+='<div class="color-seq-row">'
+        +'<span style="font-size:9px;color:var(--text3);width:16px;text-align:right">'+(i===0?'②':String.fromCharCode(9313+i))+'</span>'
+        +'<input class="color-seq-ms" type="number" min="1" max="99999" value="'+entry[0]+'" onchange="setColorEntry('+i+',\'ms\',+this.value)">'
+        +'<span style="font-size:9px;color:var(--text3)">ms</span>'
+        +'<div class="color-seq-sw" style="background:'+sw+'"></div>'
+        +'<select class="color-seq-sel" onchange="setColorEntry('+i+',\'color\',this.value)">'+opts+'</select>'
+        +'<button class="color-seq-del" onclick="deleteColorEntry('+i+')">✕</button>'
+        +'</div>';
+    }
+    inner+='</div>';
+    // Show how long each extra color actually displays
+    var seq=_buildColorSeq(m,patTotal);
+    var extraDesc='';
+    if(seq&&seq.length>1) extraDesc=' <span style="color:var(--text3);font-size:9px">(exibe '+seq[1].ms+'ms)</span>';
+    inner+='<div style="font-size:9px;color:var(--text3);margin-top:4px">Cor principal exibe <b style="color:var(--cyan)">'+mainMs+'ms</b> → troca para cor extra → resto do ciclo ('+Math.max(0,patTotal-mainMs)+'ms) · baseado no '+timingLabel+'</div>';
+    // diffuse toggle
+    var diffuseHint=isRotator(m)?'— exporta como {"color":true}':'— suaviza transição de cor';
+    inner+='<div class="diffuse-row">'
+      +'<label class="chk-lbl"><input type="checkbox" '+(m.diffuse?'checked':'')+' onchange="setDiffuse(this.checked)"> Diffuse</label>'
+      +'<span style="font-size:9px;color:var(--text3)">'+diffuseHint+'</span>'
+      +'</div>';
+  }
+  return '<div class="pg"><label class="pl" style="display:flex;align-items:center">Colors'
+    +'<label class="chk-lbl"><input type="checkbox" '+(hasColors?'checked':'')+' onchange="toggleColors(this.checked)"> '+T('activate')+'</label>'
+    +'</label>'
+    +(hasColors?'<div style="font-size:9px;color:var(--text3);margin-bottom:4px">Cor principal exibe por <b>colors[0]ms</b> → troca para extra → até o fim do ciclo</div>':'')
+    +inner
+    +(hasColors?'<button class="h-btn" style="margin-top:6px" onclick="addColorEntry()">+ Cor extra</button>':'')
+    +'</div>';
+}
+function toggleColors(on){
+  var m=getMats()[selectedId];if(!m) return;
+  if(on){ var first=Object.keys(colorRefs)[0]||'red'; m.colors=[[500,first]]; }
+  else { delete m.colors; delete m.diffuse; }
+  _propsRenderedFor=null;renderAll();
+}
+function addCustomField(){
+  var key=prompt('Nome do parâmetro:','');if(!key) return;key=key.trim();
+  if(!key) return;
+  var m=getMats()[selectedId];if(!m) return;
+  var builtins={color:1,state:1,pattern:1,reference:1,size:1,inertia:1,type:1,shadow:1,rotator:1,colors:1,diffuse:1,_savedPattern:1};
+  if(builtins[key]){alert('Esse nome é reservado.');return;}
+  m[key]=0;_propsRenderedFor=null;renderAll();
+}
+function delCustomField(key){
+  var m=getMats()[selectedId];if(!m) return;
+  delete m[key];_propsRenderedFor=null;renderAll();
+}
+function setCustomField(key,val){
+  var m=getMats()[selectedId];if(!m) return;
+  var n=parseFloat(val);m[key]=isNaN(n)?val:n;
+  var jb=document.getElementById('jsonBox');if(jb) jb.textContent=buildSingleJson(selectedId);
+}
+function addColorEntry(){
+  var m=getMats()[selectedId];if(!m) return;
+  if(!m.colors) m.colors=[];
+  var patTotal=0;
+  if(isRotator(m)){
+    patTotal=m.rotator?(m.rotator.speed||m.rotator.time||1000):1000;
+  } else {
+    if(m.pattern) for(var i=0;i<m.pattern.length;i++) patTotal+=m.pattern[i];
+  }
+  var defMs=patTotal?Math.round(patTotal/2):500;
+  var colorNames=Object.keys(colorRefs);
+  var first=colorNames.length>1?colorNames[1]:colorNames[0]||'blue';
+  m.colors.push([defMs, first]);
+  _propsRenderedFor=null;renderAll();
+}
+function deleteColorEntry(idx){
+  var m=getMats()[selectedId];if(!m||!m.colors) return;
+  m.colors.splice(idx,1);
+  if(!m.colors.length){delete m.colors;delete m.diffuse;}
+  _propsRenderedFor=null;renderAll();
+}
+function setColorEntry(idx,field,val){
+  var m=getMats()[selectedId];if(!m||!m.colors||!m.colors[idx]) return;
+  if(field==='ms') m.colors[idx][0]=val;
+  else m.colors[idx][1]=val;
+  var jb=document.getElementById('jsonBox');if(jb) jb.textContent=buildSingleJson(selectedId);
+  // Patch swatch only
+  var rows=document.querySelectorAll('.color-seq-row');
+  if(rows[idx]){
+    var sw=rows[idx].querySelector('.color-seq-sw');
+    if(sw&&field==='color'){var cc=getColor(val);sw.style.background='rgba('+cc.red+','+cc.green+','+cc.blue+','+cc.alpha/255+')';}
+  }
+}
+function setDiffuse(val){
+  var m=getMats()[selectedId];if(!m) return;
+  if(val) m.diffuse=true; else delete m.diffuse;
+  var jb=document.getElementById('jsonBox');if(jb) jb.textContent=buildSingleJson(selectedId);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  JSON
+// ═══════════════════════════════════════════════════════════
+function buildSingleJson(id){
+  var m=getMats()[id];if(!m) return '';
+  var e={color:m.color};
+  if(isRotator(m)){
+    if(m.reference) e.reference=m.reference;
+    if(m.rotator){
+      var er={};
+      var rt=m.rotator;
+      if(rt.speed!=null) er.time=rt.speed; else if(rt.time!=null) er.time=rt.time;
+      if(rt.direction&&rt.direction!=='clockwise') er.direction=rt.direction;
+      if(rt.radius!=null&&rt.radius!==360) er.radius=rt.radius;
+      if(rt.offset!=null&&rt.offset!==0) er.offset=rt.offset;
+      e.rotator=er;
+    }
+    if(m.shadow) e.shadow={offset:m.shadow.offset,size:m.shadow.size,type:m.shadow.type};
+  } else {
+    e.state=m.state;
+    e.pattern=m.pattern?m.pattern.slice():[];
+    if(m.reference) e.reference=m.reference;
+    else{e.size=m.size;if(m.inertia!=null) e.inertia=m.inertia}
+    if(m.shadow) e.shadow={offset:m.shadow.offset,size:m.shadow.size,type:m.shadow.type};
+  }
+  if(m.colors&&m.colors.length) e.colors=m.colors.map(function(c){return[c[0],c[1]]});
+  if(m.diffuse) e.diffuse=isRotator(m)?{color:true}:true;
+  var builtins2={color:1,state:1,pattern:1,reference:1,size:1,inertia:1,type:1,shadow:1,rotator:1,colors:1,diffuse:1,_savedPattern:1};
+  for(var cf in m){if(!builtins2[cf]) e[cf]=m[cf];}
+  var w={};w[id]=e;return JSON.stringify(w,null,2);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ANIMATION
+// ═══════════════════════════════════════════════════════════
+var _ticking=false;
+function tick(ts){
+  _ticking=false;
+  if(!playing) return;
+  var mats=getMats();
+  for(var id in mats){
+    var m=mats[id],r=runtime[id];if(!r) continue;
+    if(isRotator(m)){
+      var rt=m.rotator,speed=rt.speed||rt.time||1000,radius=rt.radius||360,offset=rt.offset||0,dir=rt.direction||'clockwise';
+      var elapsed=ts-r.ts,angle=offset+((elapsed/speed)*radius);
+      if(dir==='counter-clockwise') angle=offset-((elapsed/speed)*radius);
+      if(dir==='switch'){var cycle=Math.floor(elapsed/speed),frac=(elapsed%speed)/speed;angle=cycle%2===0?(offset+frac*radius):(offset+radius-frac*radius);}
+      r.angle=angle;r.state=1;
+      // Advance color sequence for rotators — one full rotation = one color period
+      if(m.colors&&m.colors.length){
+        var seq=_buildColorSeq(m,speed);
+        if(seq&&seq.length){
+          var ci=r.colorIdx||0;
+          if(ci>=seq.length) ci=r.colorIdx=0;
+          if(ts-(r.colorTs||r.ts)>seq[ci].ms){
+            r.colorTs=(r.colorTs||r.ts)+seq[ci].ms;
+            r.colorIdx=(ci+1)%seq.length;
+          }
+        }
+      }
+    } else {
+      if(!m.pattern||!m.pattern.length) {
+        // static — advance color sequence if any, using its own independent timer
+        if(m.colors&&m.colors.length){
+          var seq=_buildColorSeq(m,r.total||1000);
+          if(seq&&seq.length){
+            var ci=r.colorIdx||0;
+            if(ci>=seq.length) ci=r.colorIdx=0;
+            if(ts-(r.colorTs||r.ts)>seq[ci].ms){
+              r.colorTs=(r.colorTs||r.ts)+seq[ci].ms;
+              r.colorIdx=(ci+1)%seq.length;
+            }
+          }
+        }
+      } else {
+        if(ts-r.ts>m.pattern[r.count]){
+          r.ts=ts;r.state=r.state?0:1;r.count++;
+          if(r.count>=m.pattern.length){
+            r.count=0;r.state=m.state;
+            // Reset color sequence on every pattern cycle reset
+            r.colorIdx=0;r.colorTs=ts;
+            for(var k in runtime){
+              if(mats[k]&&!isRotator(mats[k])&&runtime[k].total===r.total){
+                runtime[k].ts=ts;runtime[k].count=0;runtime[k].state=mats[k].state;
+                // Also reset color sequence for synced materials
+                runtime[k].colorIdx=0;runtime[k].colorTs=ts;
+              }
+            }
+          }
+        }
+        // Advance color sequence using dedicated color timer
+        if(m.colors&&m.colors.length){
+          var seq=_buildColorSeq(m,r.total);
+          if(seq&&seq.length){
+            var ci=r.colorIdx||0;
+            if(ci>=seq.length) ci=r.colorIdx=0; // clamp after entry deletion
+            if(ts-(r.colorTs||r.ts)>seq[ci].ms){
+              r.colorTs=(r.colorTs||r.ts)+seq[ci].ms;
+              r.colorIdx=(ci+1)%seq.length;
+            }
+          }
+        }
+      }
+    }
+  }
+  for(var id in runtime){var p=document.getElementById('pill_'+id);if(p) p.style.opacity=runtime[id].state?'1':'.15';}
+  var order=getOrder();
+  for(var i=0;i<order.length;i++){
+    var id=order[i],m=mats[id],r=runtime[id];
+    if(isRotator(m)&&r){
+      var cell=document.getElementById('pcell_'+id);
+      if(cell){
+        var cvs=cell.querySelector('canvas');
+        var zoom=+document.getElementById('zoomSlider').value;
+        var c=getColor(getRuntimeColor(m,id));
+        if(cvs) _drawRotatorSlice(cvs,zoom,c,r.angle,m.rotator);
+      }
+    }
+  }
+  renderGrid();
+  if(previewMode==='ld') renderLightDisplay();
+  _ticking=true;requestAnimationFrame(tick);
+}
+function togglePlay(){
+  playing=!playing;
+  document.getElementById('playBtn').textContent=playing?T('pause'):T('play');
+  if(playing&&!_ticking){_ticking=true;requestAnimationFrame(tick);}
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RENDER ALL
+// ═══════════════════════════════════════════════════════════
+function renderAll(){
+  renderTabs();renderSidebar();renderTimeline();renderProps();renderGrid();updateHiddenBanner();
+  // Keep JSON editor live if open
+  var jmod=document.getElementById('jsonEditorModal');
+  if(jmod&&!jmod.classList.contains('hidden')) jemRefresh();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  SCROLL WHEEL
+// ═══════════════════════════════════════════════════════════
+document.addEventListener('wheel',function(e){
+  var el=e.target;if(el.tagName!=='INPUT'||el.type!=='number') return;
+  // Disable scroll wheel inside the color ref RGBA editor to avoid accidental deselection
+  if(el.id==='cr-r'||el.id==='cr-g'||el.id==='cr-b'||el.id==='cr-a') return;
+  e.preventDefault();
+  var dir=e.deltaY<0?1:-1,step=e.shiftKey?50:e.ctrlKey?10:1;
+  var min=el.min!==''?parseFloat(el.min):-Infinity,max=el.max!==''?parseFloat(el.max):Infinity;
+  el.value=Math.min(max,Math.max(min,(parseFloat(el.value)||0)+dir*step));
+  el.dispatchEvent(new Event('change',{bubbles:true}));
+},{passive:false});
+
+// ═══════════════════════════════════════════════════════════
+//  JSON EDITOR MODAL
+// ═══════════════════════════════════════════════════════════
+var _jemMode='sirens'; // 'sirens' | 'full'
+
+function openJsonEditor(){
+  document.getElementById('jsonEditorModal').classList.remove('hidden');
+  jemRefresh();
+}
+
+function setJsonEditorMode(m){
+  _jemMode=m;
+  document.getElementById('jemModeSirens').classList.toggle('active',m==='sirens');
+  document.getElementById('jemModeFull').classList.toggle('active',m==='full');
+  jemRefresh();
+}
+
+function jemBuildText(){
+  if(_jemMode==='full'){
+    // Full .jsonc reconstruction (same as exportJsonc but as string)
+    var sirens=buildSirensObj();
+    var full;
+    if(jsoncContext){
+      full=JSON.parse(JSON.stringify(jsoncContext));
+      full.sirens=sirens;
+    } else {
+      full={metadata:{author:'',desc:'',creationtime:new Date().toISOString(),minver:20000},sirens:sirens};
+    }
+    return JSON.stringify(full,null,2);
+  } else {
+    return JSON.stringify(buildSirensObj(),null,2);
+  }
+}
+
+function jemRefresh(){
+  var ta=document.getElementById('jemTextarea');
+  if(ta) ta.value=jemBuildText();
+  jemValidate();
+}
+
+function jemFormat(){
+  var ta=document.getElementById('jemTextarea');
+  if(!ta) return;
+  try{
+    var parsed=JSON.parse(ta.value);
+    ta.value=JSON.stringify(parsed,null,2);
+    jemValidate();
+  } catch(e){ /* leave as-is, error shown */ }
+}
+
+function jemValidate(){
+  var ta=document.getElementById('jemTextarea');
+  var bar=document.getElementById('jemErrBar');
+  if(!ta||!bar) return true;
+  try{
+    JSON.parse(ta.value);
+    ta.classList.remove('has-error');
+    bar.className='json-err-bar ok';
+    bar.textContent='✓ JSON válido';
+    return true;
+  } catch(e){
+    ta.classList.add('has-error');
+    bar.className='json-err-bar';
+    bar.textContent='✕ '+e.message;
+    return false;
+  }
+}
+
+function jemApply(){
+  if(!jemValidate()) return;
+  var ta=document.getElementById('jemTextarea');
+  try{
+    var parsed=JSON.parse(ta.value);
+    var sirens;
+    if(_jemMode==='full'){
+      // Extract sirens block, preserve rest as context
+      sirens=parsed.sirens||parsed;
+      if(parsed.sirens){
+        var ctx=JSON.parse(JSON.stringify(parsed));
+        delete ctx.sirens;
+        jsoncContext=ctx;
+      }
+    } else {
+      sirens=parsed;
+    }
+    // Validate it has the expected shape
+    if(!sirens.states&&!sirens.references) throw new Error('Estrutura inválida: precisa de "states"');
+    loadSirens(sirens);
+    // Refresh the textarea to show normalized output
+    jemRefresh();
+    var bar=document.getElementById('jemErrBar');
+    if(bar){bar.className='json-err-bar ok';bar.textContent='✓ Aplicado com sucesso!';}
+  } catch(e){
+    var bar=document.getElementById('jemErrBar');
+    if(bar){bar.className='json-err-bar';bar.textContent='✕ Erro ao aplicar: '+e.message;}
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  LIGHT DISPLAY
+// ═══════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
+// LIGHT DISPLAY — drag grid cells onto canvas to place lights
+// ════════════════════════════════════════════════════════════
+var previewMode='grid';
+var ldLights=[];    // [{id,matId,x,y,size,shape}]  x/y = 0..1 (fraction of canvas)
+var ldSelId=null;
+var _ldIdSeq=0;
+var _ldCanvas=null,_ldCtx=null;
+var _ldMoveDrag=null;  // dragging a placed light on canvas: {id,ox,oy}
+
+function ldNextId(){ return ++_ldIdSeq; }
+
+// ── Mode toggle ──────────────────────────────────────────────
+function setPreviewMode(mode){
+  previewMode=mode;
+  var isLD=mode==='ld';
+  document.getElementById('modeBtnGrid').classList.toggle('active',!isLD);
+  document.getElementById('modeBtnLD').classList.toggle('active',isLD);
+  document.getElementById('gridCtrls').style.display=isLD?'none':'flex';
+  document.getElementById('ldCtrls').style.display=isLD?'flex':'none';
+  document.getElementById('ldToolbar').style.display=isLD?'flex':'none';
+  document.getElementById('tlWrap').style.display=isLD?'none':'flex';
+  document.getElementById('ldCanvasWrap').style.display=isLD?'flex':'none';
+  updateHiddenBanner();
+  document.getElementById('matFoot').style.display=isLD?'none':'flex';
+  document.getElementById('leftPanelTitle').setAttribute('data-i18n',isLD?'ldLights':'materials');
+  document.getElementById('leftPanelTitle').textContent=isLD?T('ldLights'):T('materials');
+  renderSidebar();
+  renderGrid();
+  if(isLD){
+    _ldCanvas=document.getElementById('ldCanvas');
+    _ldCtx=_ldCanvas.getContext('2d');
+    setTimeout(_ldSyncSize,0);
+  }
+}
+
+function _ldSyncSize(){
+  if(!_ldCanvas) return;
+  var wrap=document.getElementById('ldCanvasWrap');
+  var W=wrap.clientWidth||600,H=wrap.clientHeight||200;
+  if(_ldCanvas.width!==W||_ldCanvas.height!==H){ _ldCanvas.width=W; _ldCanvas.height=H; }
+  _ldHintUpdate();
+}
+
+function _ldHintUpdate(){
+  var h=document.getElementById('ldDropHint');
+  if(h) h.style.display=ldLights.length?'none':'flex';
+}
+
+// ── Canvas rendering ─────────────────────────────────────────
+function renderLightDisplay(){
+  if(previewMode!=='ld'||!_ldCanvas||!_ldCtx) return;
+  // keep canvas pixel size in sync with layout
+  var wrap=document.getElementById('ldCanvasWrap');
+  if(wrap&&wrap.clientWidth>0&&(_ldCanvas.width!==wrap.clientWidth||_ldCanvas.height!==wrap.clientHeight)){
+    _ldCanvas.width=wrap.clientWidth; _ldCanvas.height=wrap.clientHeight;
+  }
+  var ctx=_ldCtx,W=_ldCanvas.width,H=_ldCanvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#07090c'; ctx.fillRect(0,0,W,H);
+  // subtle grid
+  ctx.strokeStyle='rgba(255,255,255,0.025)'; ctx.lineWidth=1;
+  for(var gx=0;gx<W;gx+=40){ctx.beginPath();ctx.moveTo(gx,0);ctx.lineTo(gx,H);ctx.stroke();}
+  for(var gy=0;gy<H;gy+=40){ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(W,gy);ctx.stroke();}
+  // lights
+  var mats=getMats();
+  for(var i=0;i<ldLights.length;i++){
+    var lt=ldLights[i];
+    var m=mats[lt.matId],r=runtime[lt.matId];
+    var lit=r&&r.state;
+    var c=getColor(m?getRuntimeColor(m,lt.matId):'white');
+    var alpha=c.alpha/255;
+    var px=lt.x*W, py=lt.y*H, sz=lt.size, half=sz/2;
+    ctx.save();
+    ctx.translate(px,py);
+    var isSel=(lt.id===ldSelId);
+    var isRot=isRotator(m);
+    if(isRot){
+      // Rotator: draw sweeping pie slice like the grid cell
+      var rt2=runtime[lt.matId];
+      ctx.globalAlpha=1;
+      ctx.fillStyle='#1a1e22';
+      ctx.beginPath();ctx.rect(-half,-half,sz,sz);ctx.fill();
+      if(lit&&rt2){
+        var radius2=Math.sqrt(half*half+half*half)+2;
+        var midRad=(rt2.angle-90)*Math.PI/180;
+        var sweep=Math.PI/2;
+        ctx.fillStyle='rgba('+c.red+','+c.green+','+c.blue+','+(c.alpha/255)+')';
+        ctx.beginPath();ctx.moveTo(0,0);
+        ctx.arc(0,0,radius2,midRad-sweep/2,midRad+sweep/2);ctx.closePath();ctx.fill();
+        ctx.strokeStyle='rgba(255,255,255,0.7)';ctx.lineWidth=1.5;
+        ctx.beginPath();ctx.moveTo(0,0);
+        ctx.lineTo(radius2*Math.cos(midRad),radius2*Math.sin(midRad));ctx.stroke();
+      }
+    } else {
+      // Normal: colored square like the grid cell
+      ctx.globalAlpha=lit?(c.alpha/255):0.07;
+      if(lit){ctx.shadowBlur=sz*0.6;ctx.shadowColor='rgba('+c.red+','+c.green+','+c.blue+',.55)';}
+      ctx.fillStyle='rgba('+c.red+','+c.green+','+c.blue+',1)';
+      ctx.beginPath();ctx.rect(-half,-half,sz,sz);ctx.fill();
+      ctx.shadowBlur=0;
+    }
+    if(isSel){
+      ctx.globalAlpha=0.9;
+      ctx.strokeStyle='rgba(0,204,255,0.8)';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
+      ctx.beginPath();ctx.rect(-half-3,-half-3,sz+6,sz+6);ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    ctx.globalAlpha=lit?0.75:0.4;
+    ctx.fillStyle=lit?'rgba(0,0,0,0.85)':'rgba(255,255,255,0.8)';
+    ctx.font='bold '+Math.max(9,Math.round(sz*0.28))+'px monospace';
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(lt.matId,0,0);
+    ctx.restore();
+  }
+}
+
+// ── Sidebar ──────────────────────────────────────────────────
+function renderLDSidebar(){
+  var list=document.getElementById('matList');
+  var mats=getMats();
+  if(!ldLights.length){
+    list.innerHTML='<div style="padding:16px;font-size:10px;color:var(--text3);text-align:center;line-height:1.9">'+T('ldSidebarEmpty')+'</div>';
+    return;
+  }
+  var html='';
+  for(var i=0;i<ldLights.length;i++){
+    var lt=ldLights[i],m=mats[lt.matId];
+    var c=m?getColor(m.color):{red:160,green:160,blue:160};
+    var hex=rgb2hex(c.red,c.green,c.blue);
+    var sel=lt.id===ldSelId;
+    html+='<div class="ld-row'+(sel?' sel':'')+'" onclick="ldSelectLight('+lt.id+')">'
+      +'<div class="ld-sw" style="background:'+hex+';box-shadow:0 0 5px '+hex+'99"></div>'
+      +'<div class="ld-lbl">Mat '+lt.matId+'</div>'
+      +'<button class="ld-del" onclick="event.stopPropagation();ldDeleteLight('+lt.id+')">✕</button>'
+      +'</div>';
+  }
+  list.innerHTML=html;
+}
+
+function ldSelectLight(id){
+  ldSelId=id;
+  var lt=ldLights.find(function(l){return l.id===id;});
+  if(lt){
+    var sl=document.getElementById('ldSizeSlider'),sv=document.getElementById('ldSizeVal');
+    if(sl){sl.value=lt.size;if(sv) sv.textContent=lt.size;}
+  }
+  renderLDSidebar();
+}
+
+// ── Canvas mouse: move placed lights ─────────────────────────
+function _ldXY(e){
+  var rect=_ldCanvas.getBoundingClientRect();
+  return {x:(e.clientX-rect.left)/_ldCanvas.clientWidth*_ldCanvas.width,
+          y:(e.clientY-rect.top) /_ldCanvas.clientHeight*_ldCanvas.height};
+}
+
+function _ldHit(cx,cy){
+  for(var i=ldLights.length-1;i>=0;i--){
+    var lt=ldLights[i];
+    var dx=cx-lt.x*_ldCanvas.width,dy=cy-lt.y*_ldCanvas.height;
+    if(Math.sqrt(dx*dx+dy*dy)<=Math.max(lt.size,14)) return lt.id;
+  }
+  return null;
+}
+
+document.addEventListener('DOMContentLoaded',function(){
+  var cvs=document.getElementById('ldCanvas');
+
+  cvs.addEventListener('mousedown',function(e){
+    if(previewMode!=='ld'||!_ldCanvas) return;
+    e.preventDefault();
+    var pos=_ldXY(e),hit=_ldHit(pos.x,pos.y);
+    if(hit!==null){
+      ldSelId=hit;
+      var lt=ldLights.find(function(l){return l.id===hit;});
+      _ldMoveDrag={id:hit,ox:pos.x-lt.x*_ldCanvas.width,oy:pos.y-lt.y*_ldCanvas.height};
+      renderLDSidebar();
+    } else {ldSelId=null;renderLDSidebar();}
+  });
+  cvs.addEventListener('mousemove',function(e){
+    if(!_ldMoveDrag||!_ldCanvas) return;
+    var pos=_ldXY(e),lt=ldLights.find(function(l){return l.id===_ldMoveDrag.id;});
+    if(!lt) return;
+    lt.x=Math.max(0,Math.min(1,(pos.x-_ldMoveDrag.ox)/_ldCanvas.width));
+    lt.y=Math.max(0,Math.min(1,(pos.y-_ldMoveDrag.oy)/_ldCanvas.height));
+  });
+  cvs.addEventListener('mouseup',function(){_ldMoveDrag=null;});
+  cvs.addEventListener('mouseleave',function(){_ldMoveDrag=null;});
+});
+
+// ── Grid cell → canvas drag (called from renderGrid) ─────────
+// Uses manual mouse tracking instead of HTML5 drag API for reliability
+function _ldMakeDraggable(div,matId){
+  div.classList.add('ld-grab');
+  div.addEventListener('mousedown',function(e){
+    if(previewMode!=='ld') return;
+    e.stopPropagation();e.preventDefault();
+    // still select material
+    selectedId=matId; renderProps();
+
+    // create ghost
+    var ghost=document.createElement('div');
+    ghost.textContent=matId;
+    ghost.style.cssText='position:fixed;z-index:9999;pointer-events:none;'
+      +'width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;'
+      +'font:bold 11px monospace;color:#fff;background:rgba(20,80,200,.75);'
+      +'border:2px dashed rgba(0,204,255,.9);transform:translate(-50%,-50%);'
+      +'left:'+e.clientX+'px;top:'+e.clientY+'px;';
+    document.body.appendChild(ghost);
+
+    var wrap=document.getElementById('ldCanvasWrap');
+
+    function move(ev){
+      ghost.style.left=ev.clientX+'px';
+      ghost.style.top=ev.clientY+'px';
+      if(_ldCanvas){
+        var r=_ldCanvas.getBoundingClientRect();
+        var over=ev.clientX>=r.left&&ev.clientX<=r.right&&ev.clientY>=r.top&&ev.clientY<=r.bottom;
+        wrap.classList.toggle('ld-over',over);
+      }
+    }
+
+    function up(ev){
+      document.removeEventListener('mousemove',move);
+      document.removeEventListener('mouseup',up);
+      if(ghost.parentNode) ghost.parentNode.removeChild(ghost);
+      wrap.classList.remove('ld-over');
+      if(!_ldCanvas) return;
+      var r=_ldCanvas.getBoundingClientRect();
+      if(ev.clientX>=r.left&&ev.clientX<=r.right&&ev.clientY>=r.top&&ev.clientY<=r.bottom){
+        var x=(ev.clientX-r.left)/r.width;
+        var y=(ev.clientY-r.top)/r.height;
+        var sz=+(document.getElementById('ldSizeSlider').value)||30;
+        ldLights.push({id:ldNextId(),matId:matId,x:x,y:y,size:sz});
+        ldSelId=ldLights[ldLights.length-1].id;
+        _ldHintUpdate();renderLDSidebar();
+      }
+    }
+
+    document.addEventListener('mousemove',move);
+    document.addEventListener('mouseup',up);
+  });
+}
+
+// ── Light controls ───────────────────────────────────────────
+function ldUpdateSelectedSize(v){
+  document.getElementById('ldSizeVal').textContent=v;
+  var lt=ldLights.find(function(l){return l.id===ldSelId;});
+  if(lt) lt.size=+v;
+}
+function ldDuplicateSelected(){
+  var lt=ldLights.find(function(l){return l.id===ldSelId;});
+  if(!lt) return;
+  var copy=Object.assign({},lt,{id:ldNextId(),x:Math.min(1,lt.x+0.04),y:Math.min(1,lt.y+0.04)});
+  ldLights.push(copy);ldSelId=copy.id;_ldHintUpdate();renderLDSidebar();
+}
+function ldDeleteSelected(){ldDeleteLight(ldSelId);}
+function ldDeleteLight(id){
+  ldLights=ldLights.filter(function(l){return l.id!==id;});
+  if(ldSelId===id) ldSelId=ldLights.length?ldLights[ldLights.length-1].id:null;
+  _ldHintUpdate();renderLDSidebar();
+}
+function ldClearAll(){
+  if(ldLights.length&&!confirm(T('ldClearConfirm'))) return;
+  ldLights=[];ldSelId=null;_ldHintUpdate();renderLDSidebar();
+}
+
+var _origRenderSidebar=null;
+// patched below after renderSidebar is defined
+
+
+colorRefs={
+  red:    {red:255,green:20,  blue:20,  alpha:150},
+  blue:   {red:51, green:102, blue:255, alpha:150},
+  white:  {red:255,green:255, blue:255, alpha:128},
+  orange: {red:255,green:98,  blue:0,   alpha:128}
+};
+propRefs={
+  strobe1:{size:0.125},
+  strobe: {size:0.4,inertia:0.5},
+  rotator:{size:0.2,state:1,type:'rotator',rotator:{direction:'clockwise',type:'linear',time:500}}
+};
+
+states['1.Emergency']={};stateOrder.push('1.Emergency');matOrders['1.Emergency']=[];hiddenMats['1.Emergency']={};
+var em=[
+  {id:'1',color:'red',  pattern:[300,300],state:0,size:0.4},
+  {id:'2',color:'red',  pattern:[300,300],state:1,size:0.4},
+  {id:'3',color:'blue', pattern:[300,300],state:0,size:0.4},
+  {id:'4',color:'blue', pattern:[300,300],state:1,size:0.4},
+  {id:'5',color:'white',pattern:[200,200],state:0,reference:'strobe'},
+  {id:'6',color:'white',pattern:[200,200],state:1,reference:'strobe'},
+];
+for(var i=0;i<em.length;i++){
+  var d=em[i];var entry={color:d.color,pattern:d.pattern,state:d.state};
+  if(d.reference) entry.reference=d.reference; else entry.size=d.size;
+  states['1.Emergency'][d.id]=entry;matOrders['1.Emergency'].push(d.id);
+}
+states['2.Park']={};stateOrder.push('2.Park');matOrders['2.Park']=[];hiddenMats['2.Park']={};
+var pk=[
+  {id:'1',color:'orange',pattern:[500,500],state:0,reference:'strobe1'},
+  {id:'2',color:'orange',pattern:[500,500],state:1,reference:'strobe1'},
+];
+for(var j=0;j<pk.length;j++){
+  var d=pk[j];states['2.Park'][d.id]={color:d.color,pattern:d.pattern,state:d.state,reference:d.reference};matOrders['2.Park'].push(d.id);
+}
+states['3.Rotator']={};stateOrder.push('3.Rotator');matOrders['3.Rotator']=[];hiddenMats['3.Rotator']={};
+states['3.Rotator']['1']={color:'white',state:1,pattern:[],reference:'rotator',rotator:{speed:1000}};
+states['3.Rotator']['2']={color:'white',state:1,pattern:[],rotator:{direction:'switch',speed:1000,radius:90,offset:-45},size:0.2};
+matOrders['3.Rotator']=['1','2'];
+
+// 4.MultiColor — example of multi-color blinking on the same material
+states['4.MultiColor']={};stateOrder.push('4.MultiColor');matOrders['4.MultiColor']=[];hiddenMats['4.MultiColor']={};
+// Mat 1: red 400ms → blue 400ms (800ms cycle, 2 blinks each)
+states['4.MultiColor']['1']={color:'red',pattern:[200,200,200,200],state:0,colors:[[400,'blue']],reference:'strobe'};
+// Mat 2: same offset (state:1) — opposite phase
+states['4.MultiColor']['2']={color:'red',pattern:[200,200,200,200],state:1,colors:[[400,'blue']],reference:'strobe'};
+// Mat 3: red 400ms → blue 400ms → white 400ms (1200ms cycle, 3 colors)
+states['4.MultiColor']['3']={color:'red',pattern:[200,200,200,200,200,200],state:0,colors:[[400,'blue'],[400,'white']],reference:'strobe'};
+// Mat 4: white 600ms → red 600ms with diffuse (1200ms cycle, slow pulse)
+states['4.MultiColor']['4']={color:'white',pattern:[300,300,300,300],state:1,colors:[[600,'red']],diffuse:true,reference:'strobe'};
+// Mat 5: rotator with color cycling — blue 200ms → red rest of 400ms cycle
+states['4.MultiColor']['5']={color:'blue',state:1,pattern:[],colors:[[200,'red']],diffuse:true,rotator:{speed:400},reference:'strobe'};
+matOrders['4.MultiColor']=['1','2','3','4','5'];
+
+activeState='1.Emergency';selectedId=null;
+rebuildRT();renderAll();_ticking=true;requestAnimationFrame(tick);
+</script>
+</body>
+</html>
